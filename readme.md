@@ -9,6 +9,19 @@ Features efficient deep merging and referential equality. Helpful for systems
 built with immutability in mind. Food for thought:
 [[1]](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
 
+## TOC
+
+* [Description](#description)
+* [Installation](#installation)
+* [API](#api)
+  * [`readAtPath`](#readatpathtree-path)
+  * [`replaceAtRoot`](#replaceatrootprev-next)
+  * [`mergeAtRoot`](#mergeatrootprev-patch)
+  * [`replaceAtPath`](#replaceatpathprev-value-path)
+  * [`deepEqual`](#deepequalone-other)
+  * [`immute`](#immutevalue)
+* [Compatibility](#compatibility)
+
 ## Installation
 
 ```sh
@@ -152,7 +165,7 @@ const next = {one: NaN, two: [2]}
 console.assert(deepEqual(prev, next))
 ```
 
-### `immute()`
+### `immute(value)`
 
 Deep-freezes the given value, making it immutable. Mutation attemps will throw
 errors in strict mode and silently fail in loose mode.
