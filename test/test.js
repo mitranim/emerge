@@ -93,13 +93,17 @@ prev = next = tree = error = undefined
 prev = immute({
   one: {two: NaN},
   three: {four: [4]},
-  six: undefined
+  six: undefined,
+  eight: {nine: 9},
+  ten: {eleven: 11, twelve: [12]}
 })
 
 next = immute({
   three: {five: 5},
   six: [6],
-  seven: 7
+  seven: 7,
+  eight: {nine: 9},
+  ten: {eleven: 'eleven', twelve: [12]}
 })
 
 tree = mergeAtRoot(prev, next)
@@ -109,6 +113,8 @@ if (deepEqual(tree, next)) throw Error()
 // Keep unaffected values, with unchanged references.
 if (tree.one !== prev.one) throw Error()
 if (tree.three.four !== prev.three.four) throw Error()
+if (tree.eight !== prev.eight) throw Error()
+if (tree.ten.twelve !== prev.ten.twelve) throw Error()
 // Must deep-patch new paths and values in, deep-cloning them.
 if (tree.three.five !== next.three.five) throw Error()
 if (tree.six === next.six) throw Error()
@@ -150,9 +156,7 @@ prev = immute({
   three: {four: {six: [6]}, five: 5}
 })
 
-next = immute({
-  six: 6
-})
+next = immute({six: 6})
 
 tree = replaceAtPath(prev, next, ['three', 'four'])
 
@@ -232,4 +236,4 @@ try {
   error = undefined
 }
 
-console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished test, no errors.`)
+console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished without errors.`)

@@ -2,8 +2,8 @@
 
 ## Description
 
-Utilities for creating and working with immutable data. Plain objects only:
-no OOP, no classes you must inherit from, no custom methods. Use your own data.
+Utilities for creating and working with immutable data. Plain objects only: no
+OOP, no classes you must inherit from, no custom methods. Bring your own data.
 
 Features efficient deep merging and referential equality. Helpful for systems
 built with immutability in mind. Food for thought:
