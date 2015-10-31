@@ -1,0 +1,30 @@
+{
+  "name": "emerge",
+  "version": "0.0.1",
+  "main": "lib/emerge.js",
+  "jsnext:main": "lib/emerge.js",
+  "scripts": {
+    "start": "npm run autotest",
+    "test": "node test/test",
+    "autotest": "nodemon --watch lib --watch test --exec \"node test/test\"",
+    "prepublish": "npm test"
+  },
+  "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
+  "keywords": [
+    "immutable",
+    "data",
+    "trees",
+    "pojo"
+  ],
+  "authors": [
+    "Mitranim <me@mitranim.com>"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Mitranim/emerge.git"
+  },
+  "devDependencies": {
+    "nodemon": "1.7.3"
+  }
+}
