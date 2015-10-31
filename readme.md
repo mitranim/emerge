@@ -9,7 +9,15 @@ Features efficient deep merging and referential equality. Helpful for systems
 built with immutability in mind. Food for thought:
 [[1]](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
 
-Example:
+## Installation
+
+```sh
+npm i --save emerge
+# or
+npm i --save-dev emerge
+```
+
+Example usage:
 
 ```javascript
 import {immute, mergeAtRoot} from 'emerge'
