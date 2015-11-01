@@ -68,14 +68,14 @@ try {
 // The new tree must be immutable.
 error = undefined
 try {
-  tree.new = true
+  tree.mutated = true
 } catch (err) {
   error = err
 } finally {
   if (!error) throw Error()
 }
 
-// Must remain the same reference if the result is deep equal.
+// Must return the same reference if the result would be deep equal.
 next = immute({
   one: {two: NaN},
   three: {four: 4},
@@ -120,6 +120,7 @@ if (tree.three.five !== next.three.five) throw Error()
 if (tree.six === next.six) throw Error()
 if (!deepEqual(tree.six, next.six)) throw Error()
 if (tree.seven !== next.seven) throw Error()
+if (tree.ten.eleven !== next.ten.eleven) throw Error()
 // New values must be immutable.
 try {
   tree.six.push(7)
@@ -131,14 +132,14 @@ try {
 // The new tree must be immutable.
 error = undefined
 try {
-  tree.new = true
+  tree.mutated = true
 } catch (err) {
   error = err
 } finally {
   if (!error) throw Error()
 }
 
-// Must remain the same reference if the result is deep equal.
+// Must return the same reference if the result would be deep equal.
 next = immute({
   one: {two: NaN}
 })
@@ -177,14 +178,14 @@ try {
 // The new tree must be immutable.
 error = undefined
 try {
-  tree.new = true
+  tree.mutated = true
 } catch (err) {
   error = err
 } finally {
   if (!error) throw Error()
 }
 
-// Must remain completely unchanged if the result is deep equal.
+// Must return the same reference if the result would be deep equal.
 next = immute({
   six: [6]
 })
@@ -195,15 +196,30 @@ if (tree !== prev) throw Error()
  * deepEqual
  */
 
-if (!deepEqual({
+prev = next = tree = error = undefined
+
+prev = {
   one: {two: {three: NaN}},
   four: [4, 4],
   five: 'five'
-}, {
+}
+
+next = {
   one: {two: {three: NaN}},
   four: [4, 4],
   five: 'five'
-})) throw Error()
+}
+
+if (!deepEqual(prev, next)) throw Error()
+
+prev = {
+  one: {two: {three: NaN}},
+  four: [4, 4],
+  five: 'five',
+  six: 6
+}
+
+if (deepEqual(prev, next)) throw Error()
 
 /**
  * immute
@@ -213,27 +229,26 @@ prev = next = tree = error = undefined
 
 tree = immute({
   one: {two: NaN},
-  five: {six: [6]}
+  three: {four: [4]}
 })
 
-if (tree.five.six[0] !== 6) throw Error()
+if (tree.three.four[0] !== 4) throw Error()
 
 try {
-  tree.one = 1
+  tree.one = 3
 } catch (err) {
   error = err
 } finally {
   if (!error) throw Error()
-  error = undefined
 }
 
+error = undefined
 try {
-  tree.five.six.push(7)
+  tree.three.four.push(5)
 } catch (err) {
   error = err
 } finally {
   if (!error) throw Error()
-  error = undefined
 }
 
 console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished without errors.`)

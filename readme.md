@@ -106,6 +106,8 @@ possible. The original is unaffected.
 
 Returns the original reference is the result would be deep-equal.
 
+This is useful for updating multiple branches in one "transaction".
+
 ```javascript
 import {mergeAtRoot} from 'emerge'
 
