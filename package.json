@@ -1,13 +1,12 @@
 {
   "name": "emerge",
-  "version": "0.0.2",
-  "main": "lib/emerge.js",
+  "version": "0.0.3",
+  "main": "dist/emerge.js",
   "jsnext:main": "lib/emerge.js",
   "scripts": {
-    "start": "npm run autotest",
-    "test": "node test/test",
-    "autotest": "nodemon --watch lib --watch test --exec \"node test/test\"",
-    "prepublish": "npm test"
+    "start": "gulp",
+    "test": "gulp test",
+    "prepublish": "gulp build && gulp test"
   },
   "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
   "keywords": [
@@ -25,6 +24,12 @@
     "url": "https://github.com/Mitranim/emerge.git"
   },
   "devDependencies": {
-    "nodemon": "1.7.3"
+    "del": "^2.0.2",
+    "gulp": "gulpjs/gulp#4.0",
+    "gulp-babel": "^5.3.0",
+    "gulp-load-plugins": "^1.0.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-uglify": "^1.4.2",
+    "gulp-watch": "^4.3.5"
   }
 }

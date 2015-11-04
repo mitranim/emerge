@@ -1,13 +1,15 @@
 'use strict'
 
+const emerge = require(require('path').join(__dirname, '..', require('../package').main))
+
 // Main.
-const readAtPath = require('../lib/emerge').readAtPath
-const replaceAtRoot = require('../lib/emerge').replaceAtRoot
-const mergeAtRoot = require('../lib/emerge').mergeAtRoot
-const replaceAtPath = require('../lib/emerge').replaceAtPath
+const readAtPath = emerge.readAtPath
+const replaceAtRoot = emerge.replaceAtRoot
+const mergeAtRoot = emerge.mergeAtRoot
+const replaceAtPath = emerge.replaceAtPath
 // Secondary.
-const deepEqual = require('../lib/emerge').deepEqual
-const immute = require('../lib/emerge').immute
+const deepEqual = emerge.deepEqual
+const immute = emerge.immute
 
 let prev, next, tree, error
 
@@ -251,4 +253,4 @@ try {
   if (!error) throw Error()
 }
 
-console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished without errors.`)
+console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished test without errors.`)
