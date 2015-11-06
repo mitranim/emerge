@@ -77,7 +77,7 @@ Creates a new immutable version of the given tree, deep-replaced by the given
 structure starting at the root. Preserves as many original references as
 possible. The original is unaffected.
 
-Returns the original reference is the result would be deep-equal.
+Returns the original reference if the result would be deep-equal.
 
 ```javascript
 import {replaceAtRoot} from 'emerge'
@@ -104,7 +104,7 @@ Creates a new immutable version of the given tree, deep-patched by the given
 structure starting at the root. Preserves as many original references as
 possible. The original is unaffected.
 
-Returns the original reference is the result would be deep-equal.
+Returns the original reference if the result would be deep-equal.
 
 This is useful for updating multiple branches in one "transaction".
 
@@ -134,7 +134,7 @@ Creates a new immutable version of the given tree, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
 many original references as possible. The original is unaffected.
 
-Returns the original reference is the result would be deep-equal.
+Returns the original reference if the result would be deep-equal.
 
 ```javascript
 import {replaceAtPath} from 'emerge'

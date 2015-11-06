@@ -253,4 +253,4 @@ try {
   if (!error) throw Error()
 }
 
-console.info(`[${new Date().getUTCHours()}:${new Date().getUTCMinutes()}:${new Date().getUTCSeconds()}] Finished test without errors.`)
+console.info(`[${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}] Finished test without errors.`)

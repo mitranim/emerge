@@ -5,8 +5,8 @@
   "jsnext:main": "lib/emerge.js",
   "scripts": {
     "start": "gulp",
-    "test": "gulp test",
-    "prepublish": "gulp build && gulp test"
+    "test": "node test/test",
+    "prepublish": "gulp build && npm test"
   },
   "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
   "keywords": [

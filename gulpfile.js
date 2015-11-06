@@ -21,9 +21,11 @@ const src = {
   dist: 'dist/**/*.js'
 }
 
+const out = 'dist'
+
 const test = 'test/**/*.js'
 
-const out = 'dist'
+const testCommand = require('./package').scripts.test
 
 /** ******************************** Tasks ***********************************/
 
@@ -47,7 +49,7 @@ gulp.task('minify', function () {
 })
 
 gulp.task('test', function (done) {
-  exec('node test/test', (err, stdout) => {
+  exec(testCommand, (err, stdout) => {
     process.stdout.write(stdout)
     done(err)
   })
