@@ -97,7 +97,8 @@ prev = immute({
   three: {four: [4]},
   six: undefined,
   eight: {nine: 9},
-  ten: {eleven: 11, twelve: [12]}
+  ten: {eleven: 11, twelve: [12]},
+  thirteen: 13
 })
 
 next = immute({
@@ -105,7 +106,8 @@ next = immute({
   six: [6],
   seven: 7,
   eight: {nine: 9},
-  ten: {eleven: 'eleven', twelve: [12]}
+  ten: {eleven: 'eleven', twelve: [12]},
+  thirteen: undefined
 })
 
 tree = mergeAtRoot(prev, next)
@@ -123,6 +125,12 @@ if (tree.six === next.six) throw Error()
 if (!deepEqual(tree.six, next.six)) throw Error()
 if (tree.seven !== next.seven) throw Error()
 if (tree.ten.eleven !== next.ten.eleven) throw Error()
+
+// Undefined values at mutation must be removed from resulted tree
+if (tree.hasOwnProperty('thirteen')) throw Error()
+
+console.log(tree)
+
 // New values must be immutable.
 try {
   tree.six.push(7)
