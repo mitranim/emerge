@@ -77,6 +77,8 @@ Creates a new immutable version of the given tree, deep-replaced by the given
 structure starting at the root. Preserves as many original references as
 possible. The original is unaffected.
 
+Ignores/removes tree leaves that would have `undefined` values.
+
 Returns the original reference if the result would be deep-equal.
 
 ```javascript
@@ -103,6 +105,8 @@ console.assert(tree.one === prev.one)
 Creates a new immutable version of the given tree, deep-patched by the given
 structure starting at the root. Preserves as many original references as
 possible. The original is unaffected.
+
+Ignores/removes tree leaves that would have `undefined` values.
 
 Returns the original reference if the result would be deep-equal.
 
@@ -133,6 +137,8 @@ console.assert(tree.one.three === prev.one.three)
 Creates a new immutable version of the given tree, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
 many original references as possible. The original is unaffected.
+
+Ignores/removes tree leaves that would have `undefined` values.
 
 Returns the original reference if the result would be deep-equal.
 

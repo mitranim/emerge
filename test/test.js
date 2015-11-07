@@ -77,6 +77,15 @@ try {
   if (!error) throw Error()
 }
 
+// Must ignore or unset keys where new values are `undefined`.
+next = immute({
+  one: {two: undefined},
+  three: {four: undefined},
+  six: undefined
+})
+tree = replaceAtRoot(prev, next)
+if (!(deepEqual(tree, {one: {}, three: {}}))) throw Error()
+
 // Must return the same reference if the result would be deep equal.
 next = immute({
   one: {two: NaN},
@@ -141,6 +150,13 @@ try {
   if (!error) throw Error()
 }
 
+// Must ignore or unset keys where new values are `undefined`.
+next = immute({
+  ten: {eleven: 'eleven', twelve: undefined}
+})
+tree = mergeAtRoot(prev, next)
+if (!(deepEqual(tree.ten, {eleven: 'eleven'}))) throw Error()
+
 // Must return the same reference if the result would be deep equal.
 next = immute({
   one: {two: NaN}
@@ -186,6 +202,13 @@ try {
 } finally {
   if (!error) throw Error()
 }
+
+// Must ignore or unset keys where new values are `undefined`.
+next = immute({
+  four: {six: undefined}, five: 5
+})
+tree = replaceAtPath(prev, next, ['three'])
+if (!(deepEqual(tree.three, {four: {}, five: 5}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
 next = immute({
