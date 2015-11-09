@@ -1,6 +1,6 @@
 'use strict'
 
-const emerge = require(require('path').join(__dirname, '..', require('../package').main))
+const emerge = require(require('path').join(__dirname, '..', require('../package')['jsnext:main']))
 
 // Main.
 const readAtPath = emerge.readAtPath

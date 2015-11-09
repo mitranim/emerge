@@ -56,10 +56,10 @@ gulp.task('test', function (done) {
 })
 
 gulp.task('watch', function () {
-  $.watch(src.lib, gulp.series('build', 'test'))
+  $.watch(src.lib, gulp.parallel('test', 'build'))
   $.watch(test, gulp.series('test'))
 })
 
 gulp.task('build', gulp.series('clear', 'compile', 'minify'))
 
-gulp.task('default', gulp.series('build', 'test', 'watch'))
+gulp.task('default', gulp.series('test', 'build', 'watch'))
