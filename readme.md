@@ -15,9 +15,8 @@ built with immutability in mind. Food for thought:
 * [Installation](#installation)
 * [API](#api)
   * [`readAtPath`](#readatpathtree-path)
-  * [`replaceAtRoot`](#replaceatrootprev-next)
-  * [`mergeAtRoot`](#mergeatrootprev-patch)
   * [`replaceAtPath`](#replaceatpathprev-value-path)
+  * [`mergeAtPath`](#mergeatpathprev-value-path)
   * [`deepEqual`](#deepequalone-other)
   * [`immute`](#immutevalue)
 * [Compatibility](#compatibility)
@@ -71,67 +70,6 @@ const tree = {
 console.assert(readAtPath(tree, ['one', 'two', 'three']) === 3)
 ```
 
-### `replaceAtRoot(prev, next)`
-
-Creates a new immutable version of the given tree, deep-replaced by the given
-structure starting at the root. Preserves as many original references as
-possible. The original is unaffected.
-
-Ignores/removes tree leaves that would have `undefined` values.
-
-Returns the original reference if the result would be deep-equal.
-
-```javascript
-import {replaceAtRoot} from 'emerge'
-
-const prev = {
-  one: {two: 2},
-  three: 3
-}
-
-const next = {
-  one: {two: 2},
-  three: 'three'
-}
-
-const tree = replaceAtRoot(prev, next)
-
-console.assert(tree.three === 'three')
-console.assert(tree.one === prev.one)
-```
-
-### `mergeAtRoot(prev, patch)`
-
-Creates a new immutable version of the given tree, deep-patched by the given
-structure starting at the root. Preserves as many original references as
-possible. The original is unaffected.
-
-Ignores/removes tree leaves that would have `undefined` values.
-
-Returns the original reference if the result would be deep-equal.
-
-This is useful for updating multiple branches in one "transaction".
-
-```javascript
-import {mergeAtRoot} from 'emerge'
-
-const prev = {
-  one: {
-    two: 2,
-    three: [3]
-  }
-}
-
-const patch = {
-  one: {two: 'two'}
-}
-
-const tree = mergeAtRoot(prev, patch)
-
-console.assert(tree.one.two === 'two')
-console.assert(tree.one.three === prev.one.three)
-```
-
 ### `replaceAtPath(prev, value, path)`
 
 Creates a new immutable version of the given tree, patched with the given value
@@ -153,10 +91,67 @@ const prev = {
   four: [4]
 }
 
-const tree = replaceAtPath(prev, 'two', ['one', 'two'])
+const next = {two: 'two'}
 
-console.assert(tree.one.two === 'two')
+const tree = replaceAtPath(prev, next, ['one'])
+
+// Result:
+//   {
+//     one: {
+//       two: 'two'
+//     },
+//     four: [4]
+//   }
+
+console.assert(tree.one.two === next.two)
 console.assert(tree.four === prev.four)
+```
+
+### `mergeAtPath(prev, value, path)`
+
+Creates a new immutable version of the given tree, deep-patched by the given
+structure starting at the given path. The path must be an array of strings or
+symbols. Preserves as many original references as possible. The original is
+unaffected.
+
+Ignores/removes tree leaves that would have `undefined` values.
+
+Returns the original reference if the result would be deep-equal.
+
+This is useful for updating multiple branches in one operation and preserving
+other data.
+
+```javascript
+import {mergeAtPath} from 'emerge'
+
+const prev = {
+  one: {
+    two: {
+      three: 3,
+      four: 4
+    }
+  },
+  five: [5]
+}
+
+const patch = {two: {three: 'three'}}
+
+const tree = mergeAtPath(prev, patch, ['one'])
+
+// Result:
+//   {
+//     one: {
+//       two: {
+//         three: 'three',
+//         four: 4
+//       }
+//     },
+//     five: [5]
+//   }
+
+console.assert(tree.one.two.three === next.two.three)
+console.assert(tree.one.four === prev.one.four)
+console.assert(tree.five === prev.five)
 ```
 
 ### `deepEqual(one, other)`

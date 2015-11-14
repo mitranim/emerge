@@ -7,6 +7,7 @@ const readAtPath = emerge.readAtPath
 const replaceAtRoot = emerge.replaceAtRoot
 const mergeAtRoot = emerge.mergeAtRoot
 const replaceAtPath = emerge.replaceAtPath
+const mergeAtPath = emerge.mergeAtPath
 // Secondary.
 const deepEqual = emerge.deepEqual
 const immute = emerge.immute
@@ -215,6 +216,62 @@ next = immute({
   six: [6]
 })
 tree = replaceAtPath(prev, next, ['three', 'four'])
+if (tree !== prev) throw Error()
+
+/**
+ * mergeAtPath
+ */
+
+prev = next = tree = error = undefined
+
+prev = immute({
+  one: {two: 2, three: [3]},
+  five: NaN
+})
+
+next = immute({
+  two: [2],
+  four: 4
+})
+
+tree = mergeAtPath(prev, next, ['one'])
+
+if (tree === prev || tree === next) throw Error()
+// Must deep-patch the new value in, deep-cloning it.
+if (tree.one.two === next.two) throw Error()
+if (!deepEqual(tree.one.two, next.two)) throw Error()
+if (tree.one.four !== next.four) throw Error()
+// Unaffected paths must remain untouched, with same references.
+if (tree.one.three !== prev.one.three) throw Error()
+if (!deepEqual(tree.five, prev.five)) throw Error()
+// The patched value must be immutable.
+try {
+  tree.one.two.push(3)
+} catch (err) {
+  error = err
+} finally {
+  if (!error) throw Error()
+}
+// The new tree must be immutable.
+error = undefined
+try {
+  tree.mutated = true
+} catch (err) {
+  error = err
+} finally {
+  if (!error) throw Error()
+}
+
+// Must ignore or unset keys where new values are `undefined`.
+next = immute({three: undefined, six: undefined})
+tree = mergeAtPath(prev, next, ['one'])
+if (!(deepEqual(tree.one, {two: 2}))) throw Error()
+
+// Must return the same reference if the result would be deep equal.
+next = immute({
+  one: {three: [3]}
+})
+tree = mergeAtPath(prev, next, [])
 if (tree !== prev) throw Error()
 
 /**

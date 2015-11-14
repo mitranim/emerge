@@ -1,11 +1,11 @@
 {
   "name": "emerge",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "main": "dist/emerge.js",
   "jsnext:main": "lib/emerge.js",
   "scripts": {
     "start": "gulp",
-    "test": "node test/test",
+    "test": "env TESTING=true node test/test",
     "prepublish": "gulp build && npm test"
   },
   "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
