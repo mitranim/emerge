@@ -4,6 +4,7 @@ const emerge = require(require('path').join(__dirname, '..', require('../package
 
 // Main.
 const readAtPath = emerge.readAtPath
+const UNDOCUMENTED_changedPaths = emerge.UNDOCUMENTED_changedPaths
 const replaceAtRoot = emerge.replaceAtRoot
 const mergeAtRoot = emerge.mergeAtRoot
 const replaceAtPath = emerge.replaceAtPath
@@ -12,13 +13,13 @@ const mergeAtPath = emerge.mergeAtPath
 const deepEqual = emerge.deepEqual
 const immute = emerge.immute
 
-let prev, next, tree, error
+let prev, next, tree, paths, error
 
 /**
  * readAtPath
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 tree = immute({
   one: 1,
@@ -32,10 +33,42 @@ if (readAtPath(tree, ['two', 'three', 'four', '0']) !== 4) throw Error()
 if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
 
 /**
+ * UNDOCUMENTED_changedPaths
+ */
+
+prev = next = tree = paths = error = undefined
+
+prev = immute({
+  one: {two: NaN},
+  four: [4],
+  seven: {eight: 'eight'}
+})
+
+next = immute({
+  one: {two: NaN, three: 3},
+  five: {six: 6},
+  seven: {eight: 'eight'}
+})
+
+paths = UNDOCUMENTED_changedPaths(prev, next)
+
+if (!deepEqual(paths, [
+  [],
+  ['one'],
+  ['one', 'three'],
+  ['four'],
+  ['five'],
+  ['five', 'six']
+])) throw Error()
+
+if (!deepEqual(UNDOCUMENTED_changedPaths(prev, prev), [])) throw Error()
+if (!deepEqual(UNDOCUMENTED_changedPaths(NaN, Infinity), [[]])) throw Error()
+
+/**
  * replaceAtRoot
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -100,7 +133,7 @@ if (tree !== prev) throw Error()
  * mergeAtRoot
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -169,7 +202,7 @@ if (tree !== prev) throw Error()
  * replaceAtPath
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -222,7 +255,7 @@ if (tree !== prev) throw Error()
  * mergeAtPath
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 prev = immute({
   one: {two: 2, three: [3]},
@@ -278,7 +311,7 @@ if (tree !== prev) throw Error()
  * deepEqual
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 prev = {
   one: {two: {three: NaN}},
@@ -307,7 +340,7 @@ if (deepEqual(prev, next)) throw Error()
  * immute
  */
 
-prev = next = tree = error = undefined
+prev = next = tree = paths = error = undefined
 
 tree = immute({
   one: {two: NaN},
