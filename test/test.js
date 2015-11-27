@@ -1,5 +1,23 @@
 'use strict'
 
+/**
+ * Hack to enable test-only code.
+ */
+
+const fs = require('fs')
+
+require.extensions['.js'] = (module, path) => {
+  let content = fs.readFileSync(path, 'utf8')
+  content = content
+    .replace(/^\/\*\s*#if\s+TESTING\b.*$/gm, '')
+    .replace(/^\s*#endif\s+TESTING\b.*\*\/$/gm, '')
+  module._compile(content, path)
+}
+
+/**
+ * Dependencies
+ */
+
 const emerge = require(require('path').join(__dirname, '..', require('../package')['jsnext:main']))
 
 // Main.
@@ -12,13 +30,17 @@ const mergeAtPath = emerge.mergeAtPath
 const deepEqual = emerge.deepEqual
 const immute = emerge.immute
 
-let prev, next, tree, paths, error
+/**
+ * Globals
+ */
+
+let prev, next, tree, error
 
 /**
  * readAtPath
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 tree = immute({
   one: 1,
@@ -35,7 +57,7 @@ if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
  * replaceAtRoot
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -100,7 +122,7 @@ if (tree !== prev) throw Error()
  * mergeAtRoot
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -169,7 +191,7 @@ if (tree !== prev) throw Error()
  * replaceAtPath
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 prev = immute({
   one: {two: NaN},
@@ -222,7 +244,7 @@ if (tree !== prev) throw Error()
  * mergeAtPath
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 prev = immute({
   one: {two: 2, three: [3]},
@@ -278,7 +300,7 @@ if (tree !== prev) throw Error()
  * deepEqual
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 prev = {
   one: {two: {three: NaN}},
@@ -307,7 +329,7 @@ if (deepEqual(prev, next)) throw Error()
  * immute
  */
 
-prev = next = tree = paths = error = undefined
+prev = next = tree = error = undefined
 
 tree = immute({
   one: {two: NaN},
