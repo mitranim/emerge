@@ -190,6 +190,10 @@ try {
 }
 ```
 
+## TODO
+
+Consider if we want to support symbol keys. (Note: `JSON.stringify` ignores them.)
+
 ## Compatibility
 
 Any ES5 environment (IE9+).
