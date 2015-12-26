@@ -36,11 +36,15 @@ const immute = emerge.immute
 
 let prev, next, tree, error
 
+const RESET = () => {
+  prev = next = tree = error = undefined
+}
+
 /**
  * readAtPath
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 tree = immute({
   one: 1,
@@ -57,7 +61,7 @@ if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
  * replaceAtRoot
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 prev = immute({
   one: {two: NaN},
@@ -122,7 +126,7 @@ if (tree !== prev) throw Error()
  * mergeAtRoot
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 prev = immute({
   one: {two: NaN},
@@ -191,7 +195,7 @@ if (tree !== prev) throw Error()
  * replaceAtPath
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 prev = immute({
   one: {two: NaN},
@@ -240,11 +244,17 @@ next = immute({
 tree = replaceAtPath(prev, next, ['three', 'four'])
 if (tree !== prev) throw Error()
 
+// Must replace plain objects with arrays.
+prev = immute({one: {}})
+next = immute(['two'])
+tree = replaceAtPath(prev, next, ['one'])
+if (!deepEqual(tree, {one: ['two']})) throw Error()
+
 /**
  * mergeAtPath
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 prev = immute({
   one: {two: 2, three: [3]},
@@ -296,11 +306,17 @@ next = immute({
 tree = mergeAtPath(prev, next, [])
 if (tree !== prev) throw Error()
 
+// Must replace plain objects with arrays.
+prev = immute({one: {}})
+next = immute(['two'])
+tree = mergeAtPath(prev, next, ['one'])
+if (!deepEqual(tree, {one: ['two']})) throw Error()
+
 /**
  * deepEqual
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 prev = {
   one: {two: {three: NaN}},
@@ -329,7 +345,7 @@ if (deepEqual(prev, next)) throw Error()
  * immute
  */
 
-prev = next = tree = error = undefined
+RESET()
 
 tree = immute({
   one: {two: NaN},
