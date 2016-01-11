@@ -112,6 +112,8 @@ next = immute({
 })
 tree = replaceAtRoot(prev, next)
 if (!(deepEqual(tree, {one: {}, three: {}}))) throw Error()
+tree = replaceAtRoot(undefined, next)
+if (!(deepEqual(tree, {one: {}, three: {}}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
 next = immute({
@@ -182,6 +184,8 @@ next = immute({
   ten: {eleven: 'eleven', twelve: undefined}
 })
 tree = mergeAtRoot(prev, next)
+if (!(deepEqual(tree.ten, {eleven: 'eleven'}))) throw Error()
+tree = mergeAtRoot(undefined, next)
 if (!(deepEqual(tree.ten, {eleven: 'eleven'}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
