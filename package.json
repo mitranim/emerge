@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.0.10",
+  "version": "0.0.11",
   "main": "dist/emerge.js",
   "jsnext:main": "lib/emerge.js",
   "scripts": {
