@@ -22,13 +22,13 @@ const emerge = require(require('path').join(__dirname, '..', require('../package
 
 // Main.
 const readAtPath = emerge.readAtPath
-const replaceAtRoot = emerge.replaceAtRoot
-const mergeAtRoot = emerge.mergeAtRoot
+const replace = emerge.replace
+const merge = emerge.merge
 const replaceAtPath = emerge.replaceAtPath
 const mergeAtPath = emerge.mergeAtPath
 // Secondary.
 const deepEqual = emerge.deepEqual
-const immute = emerge.immute
+const immutableClone = emerge.immutableClone
 
 /**
  * Globals
@@ -46,7 +46,7 @@ const RESET = () => {
 
 RESET()
 
-tree = immute({
+tree = immutableClone({
   one: 1,
   two: {three: {four: [4, 5]}}
 })
@@ -58,24 +58,24 @@ if (readAtPath(tree, ['two', 'three', 'four', '0']) !== 4) throw Error()
 if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
 
 /**
- * replaceAtRoot
+ * replace
  */
 
 RESET()
 
-prev = immute({
+prev = immutableClone({
   one: {two: NaN},
   three: {four: 4},
   five: [5]
 })
 
-next = immute({
+next = immutableClone({
   one: {two: NaN},
   three: {four: [4]},
   six: 6
 })
 
-tree = replaceAtRoot(prev, next)
+tree = replace(prev, next)
 
 // Must be a non-referential copy of the next tree.
 if (tree === prev || tree === next) throw Error()
@@ -104,33 +104,33 @@ try {
   if (!error) throw Error()
 }
 
-// Must ignore or unset keys where new values are `undefined`.
-next = immute({
+// Must ignore or unset keys with nil values.
+next = immutableClone({
   one: {two: undefined},
-  three: {four: undefined},
-  six: undefined
+  three: {four: null},
+  six: null
 })
-tree = replaceAtRoot(prev, next)
+tree = replace(prev, next)
 if (!(deepEqual(tree, {one: {}, three: {}}))) throw Error()
-tree = replaceAtRoot(undefined, next)
+tree = replace(undefined, next)
 if (!(deepEqual(tree, {one: {}, three: {}}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
-next = immute({
+next = immutableClone({
   one: {two: NaN},
   three: {four: 4},
   five: [5]
 })
-tree = replaceAtRoot(prev, next)
+tree = replace(prev, next)
 if (tree !== prev) throw Error()
 
 /**
- * mergeAtRoot
+ * merge
  */
 
 RESET()
 
-prev = immute({
+prev = immutableClone({
   one: {two: NaN},
   three: {four: [4]},
   six: undefined,
@@ -138,7 +138,7 @@ prev = immute({
   ten: {eleven: 11, twelve: [12]}
 })
 
-next = immute({
+next = immutableClone({
   three: {five: 5},
   six: [6],
   seven: 7,
@@ -146,7 +146,7 @@ next = immute({
   ten: {eleven: 'eleven', twelve: [12]}
 })
 
-tree = mergeAtRoot(prev, next)
+tree = merge(prev, next)
 
 if (tree === prev || tree === next) throw Error()
 if (deepEqual(tree, next)) throw Error()
@@ -179,20 +179,20 @@ try {
   if (!error) throw Error()
 }
 
-// Must ignore or unset keys where new values are `undefined`.
-next = immute({
-  ten: {eleven: 'eleven', twelve: undefined}
-})
-tree = mergeAtRoot(prev, next)
+// Must ignore or unset keys with nil values.
+next = {
+  ten: {eleven: 'eleven', twelve: undefined, thirteen: null}
+}
+tree = merge(prev, next)
 if (!(deepEqual(tree.ten, {eleven: 'eleven'}))) throw Error()
-tree = mergeAtRoot(undefined, next)
+tree = merge(undefined, next)
 if (!(deepEqual(tree.ten, {eleven: 'eleven'}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
-next = immute({
+next = immutableClone({
   one: {two: NaN}
 })
-tree = mergeAtRoot(prev, next)
+tree = merge(prev, next)
 if (tree !== prev) throw Error()
 
 /**
@@ -201,12 +201,12 @@ if (tree !== prev) throw Error()
 
 RESET()
 
-prev = immute({
+prev = immutableClone({
   one: {two: NaN},
   three: {four: {six: [6]}, five: 5}
 })
 
-next = immute({six: 6})
+next = immutableClone({six: 6})
 
 tree = replaceAtPath(prev, next, ['three', 'four'])
 
@@ -234,23 +234,28 @@ try {
   if (!error) throw Error()
 }
 
-// Must ignore or unset keys where new values are `undefined`.
-next = immute({
-  four: {six: undefined}, five: 5
+// Must ignore or unset keys with nil values.
+next = immutableClone({
+  four: {six: undefined, seven: null}, five: 5
 })
 tree = replaceAtPath(prev, next, ['three'])
 if (!(deepEqual(tree.three, {four: {}, five: 5}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
-next = immute({
+next = immutableClone({
   six: [6]
 })
 tree = replaceAtPath(prev, next, ['three', 'four'])
+
+function inspect (value) {
+  return require('util').inspect(value, {depth: null})
+}
+
 if (tree !== prev) throw Error()
 
 // Must replace plain objects with arrays.
-prev = immute({one: {}})
-next = immute(['two'])
+prev = immutableClone({one: {}})
+next = immutableClone(['two'])
 tree = replaceAtPath(prev, next, ['one'])
 if (!deepEqual(tree, {one: ['two']})) throw Error()
 
@@ -260,12 +265,12 @@ if (!deepEqual(tree, {one: ['two']})) throw Error()
 
 RESET()
 
-prev = immute({
+prev = immutableClone({
   one: {two: 2, three: [3]},
   five: NaN
 })
 
-next = immute({
+next = immutableClone({
   two: [2],
   four: 4
 })
@@ -298,21 +303,21 @@ try {
   if (!error) throw Error()
 }
 
-// Must ignore or unset keys where new values are `undefined`.
-next = immute({three: undefined, six: undefined})
+// Must ignore or unset keys with nil values.
+next = {three: undefined, six: null}
 tree = mergeAtPath(prev, next, ['one'])
 if (!(deepEqual(tree.one, {two: 2}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
-next = immute({
+next = immutableClone({
   one: {three: [3]}
 })
 tree = mergeAtPath(prev, next, [])
 if (tree !== prev) throw Error()
 
 // Must replace plain objects with arrays.
-prev = immute({one: {}})
-next = immute(['two'])
+prev = immutableClone({one: {}})
+next = immutableClone(['two'])
 tree = mergeAtPath(prev, next, ['one'])
 if (!deepEqual(tree, {one: ['two']})) throw Error()
 
@@ -346,17 +351,20 @@ prev = {
 if (deepEqual(prev, next)) throw Error()
 
 /**
- * immute
+ * immutableClone
  */
 
 RESET()
 
-tree = immute({
+prev = {
   one: {two: NaN},
   three: {four: [4]}
-})
+}
 
-if (tree.three.four[0] !== 4) throw Error()
+tree = immutableClone(prev)
+
+if (!deepEqual(tree, prev)) throw Error()
+if (tree === prev) throw Error()
 
 try {
   tree.one = 3
@@ -374,5 +382,15 @@ try {
 } finally {
   if (!error) throw Error()
 }
+
+// Must drop keys with nil values.
+
+tree = immutableClone({
+  one: 1,
+  two: null,
+  three: undefined
+})
+
+if (!deepEqual(tree, {one: 1})) throw Error()
 
 console.info(`[${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}] Finished test without errors.`)

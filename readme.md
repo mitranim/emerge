@@ -18,7 +18,7 @@ built with immutability in mind. Food for thought:
   * [`replaceAtPath`](#replaceatpathprev-value-path)
   * [`mergeAtPath`](#mergeatpathprev-value-path)
   * [`deepEqual`](#deepequalone-other)
-  * [`immute`](#immutevalue)
+  * [`immutableClone`](#immutableclonevalue)
 * [Compatibility](#compatibility)
 
 ## Installation
@@ -32,12 +32,12 @@ npm i --save-dev emerge
 Example usage:
 
 ```javascript
-import {immute, mergeAtRoot} from 'emerge'
+import {mergeAtRoot} from 'emerge'
 
-const prev = immute({
+const prev = {
   one: [1],
   two: {three: 3}
-})
+}
 
 const next = {
   two: {three: 'three'}
@@ -76,7 +76,7 @@ Creates a new immutable version of the given tree, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
 many original references as possible. The original is unaffected.
 
-Ignores/removes tree leaves that would have `undefined` values.
+Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
 
 Returns the original reference if the result would be deep-equal.
 
@@ -114,7 +114,7 @@ structure starting at the given path. The path must be an array of strings or
 symbols. Preserves as many original references as possible. The original is
 unaffected.
 
-Ignores/removes tree leaves that would have `undefined` values.
+Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
 
 Returns the original reference if the result would be deep-equal.
 
@@ -168,18 +168,19 @@ const next = {one: NaN, two: [2]}
 console.assert(deepEqual(prev, next))
 ```
 
-### `immute(value)`
+### `immutableClone(value)`
 
-Deep-freezes the given value, making it immutable. Mutation attemps will throw
-errors in strict mode and silently fail in loose mode.
+Creates an immutable deep clone of the given value, ignoring keys with `null` or
+`undefined` values.
 
 ```javascript
-import {immute} from 'emerge'
+import {immutableClone} from 'emerge'
 
-const tree = immute({
+const tree = immutableClone({
   one: 1
 })
 
+// Mutation attempts throw errors in strict mode.
 let error
 try {
   tree.one = 2
