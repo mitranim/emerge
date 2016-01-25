@@ -6,7 +6,7 @@
   "scripts": {
     "start": "gulp",
     "test": "node test/test",
-    "prepublish": "gulp build && npm test"
+    "prepublish": "gulp build && node test/test"
   },
   "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
   "keywords": [
