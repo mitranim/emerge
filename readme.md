@@ -2,11 +2,12 @@
 
 ## Description
 
-Utilities for creating and working with immutable data. Plain objects only: no
-OOP, no classes you must inherit from, no custom methods. Bring your own data.
+Utilities for creating and merging immutable data trees. Friendly to functional
+programming. Only plain JS objects, no custom classes, no OOP, bring your own
+data. Extremely lightweight (2 KB minified & mangled).
 
 Features efficient deep merging and referential equality. Helpful for systems
-built with immutability in mind. Food for thought:
+built around immutable data. Food for thought:
 [[1]](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
 
 ## TOC
