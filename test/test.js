@@ -20,13 +20,17 @@ require.extensions['.js'] = (module, path) => {
 
 const emerge = require(require('path').join(__dirname, '..', require('../package')['jsnext:main']))
 
-// Main.
+// Reading.
+const readAt = emerge.readAt
 const readAtPath = emerge.readAtPath
-const replace = emerge.replace
+
+// Merging.
 const merge = emerge.merge
-const replaceAtPath = emerge.replaceAtPath
+const replace = emerge.replace
 const mergeAtPath = emerge.mergeAtPath
-// Secondary.
+const replaceAtPath = emerge.replaceAtPath
+
+// Misc.
 const deepEqual = emerge.deepEqual
 const immutableClone = emerge.immutableClone
 
@@ -41,7 +45,7 @@ const RESET = () => {
 }
 
 /**
- * readAtPath
+ * readAtPath, readAt
  */
 
 RESET()
@@ -56,6 +60,12 @@ if (readAtPath(tree, ['two']) !== tree.two) throw Error()
 if (readAtPath(tree, ['one']) !== 1) throw Error()
 if (readAtPath(tree, ['two', 'three', 'four', '0']) !== 4) throw Error()
 if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
+
+if (readAt(tree) !== tree) throw Error()
+if (readAt(tree, 'two') !== tree.two) throw Error()
+if (readAt(tree, 'one') !== 1) throw Error()
+if (readAt(tree, 'two', 'three', 'four', '0') !== 4) throw Error()
+if (readAt(tree, Symbol()) !== undefined) throw Error()
 
 /**
  * replace
@@ -82,9 +92,6 @@ if (tree === prev || tree === next) throw Error()
 if (!deepEqual(tree, next)) throw Error()
 // Referential equality: keep old references if values are deep equal.
 if (tree.one !== prev.one) throw Error()
-// New values must be deep cloned.
-if (tree.three === next.three) throw Error()
-if (tree.three.four === next.three.four) throw Error()
 if (!deepEqual(tree.three, next.three)) throw Error()
 // New values must be immutable.
 try {
@@ -155,9 +162,8 @@ if (tree.one !== prev.one) throw Error()
 if (tree.three.four !== prev.three.four) throw Error()
 if (tree.eight !== prev.eight) throw Error()
 if (tree.ten.twelve !== prev.ten.twelve) throw Error()
-// Must deep-patch new paths and values in, deep-cloning them.
+// Must deep-patch new paths and values in.
 if (tree.three.five !== next.three.five) throw Error()
-if (tree.six === next.six) throw Error()
 if (!deepEqual(tree.six, next.six)) throw Error()
 if (tree.seven !== next.seven) throw Error()
 if (tree.ten.eleven !== next.ten.eleven) throw Error()
@@ -211,8 +217,7 @@ next = immutableClone({six: 6})
 tree = replaceAtPath(prev, next, ['three', 'four'])
 
 if (tree === prev || tree === next) throw Error()
-// Must deep-patch the new value in, deep-cloning it.
-if (tree.three.four === next) throw Error()
+// Must deep-patch the new value in.
 if (!deepEqual(tree.three.four, next)) throw Error()
 // Unaffected paths must remain untouched, with same references.
 if (tree.three.five !== prev.three.five) throw Error()
@@ -278,8 +283,7 @@ next = immutableClone({
 tree = mergeAtPath(prev, next, ['one'])
 
 if (tree === prev || tree === next) throw Error()
-// Must deep-patch the new value in, deep-cloning it.
-if (tree.one.two === next.two) throw Error()
+// Must deep-patch the new value in.
 if (!deepEqual(tree.one.two, next.two)) throw Error()
 if (tree.one.four !== next.four) throw Error()
 // Unaffected paths must remain untouched, with same references.
@@ -392,5 +396,18 @@ tree = immutableClone({
 })
 
 if (!deepEqual(tree, {one: 1})) throw Error()
+
+// Must act as identity function for immutable objects, trusting them to be
+// deep-frozen.
+
+prev = Object.freeze({one: 1})
+
+tree = immutableClone(prev)
+
+if (tree !== prev) throw Error()
+
+/**
+ * Misc
+ */
 
 console.info(`[${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}] Finished test without errors.`)
