@@ -27,35 +27,37 @@ const test = 'test/**/*.js'
 
 const testCommand = require('./package').scripts.test
 
+function noop () {}
+
 /** ******************************** Tasks ***********************************/
 
-gulp.task('clear', function (done) {
-  del(out).then(() => {done()})
-})
+gulp.task('clear', () => (
+  del(out).catch(noop)
+))
 
-gulp.task('compile', function () {
-  return gulp.src(src.lib)
+gulp.task('compile', () => (
+  gulp.src(src.lib)
     .pipe($.babel())
     .pipe(gulp.dest(out))
-})
+))
 
-gulp.task('minify', function () {
-  return gulp.src(src.dist)
+gulp.task('minify', () => (
+  gulp.src(src.dist)
     .pipe($.uglify({mangle: true, compress: {warnings: false}}))
     .pipe($.rename(path => {
       path.extname = '.min.js'
     }))
     .pipe(gulp.dest(out))
-})
+))
 
-gulp.task('test', function (done) {
+gulp.task('test', done => {
   exec(testCommand, (err, stdout) => {
     process.stdout.write(stdout)
     done(err)
   })
 })
 
-gulp.task('watch', function () {
+gulp.task('watch', () => {
   $.watch(src.lib, gulp.parallel('test', 'build'))
   $.watch(test, gulp.series('test'))
 })
