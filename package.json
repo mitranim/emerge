@@ -1,8 +1,7 @@
 {
   "name": "emerge",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "main": "dist/emerge.js",
-  "jsnext:main": "lib/emerge.js",
   "scripts": {
     "start": "gulp",
     "test": "node test/test",

@@ -1,34 +1,36 @@
 'use strict'
 
 /**
- * Hack to enable test-only code.
+ * TODO convert the test suite to a map of inputs to outputs.
  */
 
 const fs = require('fs')
 
+// Hack to enable test-only code.
 require.extensions['.js'] = (module, path) => {
-  let content = fs.readFileSync(path, 'utf8')
-  content = content
-    .replace(/^\/\*\s*#if\s+TESTING\b.*$/gm, '')
-    .replace(/^\s*#endif\s+TESTING\b.*\*\/$/gm, '')
-  module._compile(content, path)
+  module._compile(
+    fs.readFileSync(path, 'utf8')
+      .replace(/^\s*\/\*\s*#if\s+TESTING\b.*$/gm, '')
+      .replace(/^\s*#endif.*\*\/$/gm, ''),
+    path
+  )
 }
 
 /**
  * Dependencies
  */
 
-const emerge = require(require('path').join(__dirname, '..', require('../package')['jsnext:main']))
+const emerge = require('../lib/emerge')
 
 // Reading.
+const read = emerge.read
 const readAt = emerge.readAt
-const readAtPath = emerge.readAtPath
 
 // Merging.
 const merge = emerge.merge
 const replace = emerge.replace
-const mergeAtPath = emerge.mergeAtPath
-const replaceAtPath = emerge.replaceAtPath
+const mergeAt = emerge.mergeAt
+const replaceAt = emerge.replaceAt
 
 // Misc.
 const deepEqual = emerge.deepEqual
@@ -45,7 +47,7 @@ const RESET = () => {
 }
 
 /**
- * readAtPath, readAt
+ * readAt, read
  */
 
 RESET()
@@ -55,17 +57,17 @@ tree = immutableClone({
   two: {three: {four: [4, 5]}}
 })
 
-if (readAtPath(tree, []) !== tree) throw Error()
-if (readAtPath(tree, ['two']) !== tree.two) throw Error()
-if (readAtPath(tree, ['one']) !== 1) throw Error()
-if (readAtPath(tree, ['two', 'three', 'four', '0']) !== 4) throw Error()
-if (readAtPath(tree, [Symbol()]) !== undefined) throw Error()
+if (readAt([], tree) !== tree) throw Error()
+if (readAt(['two'], tree) !== tree.two) throw Error()
+if (readAt(['one'], tree) !== 1) throw Error()
+if (readAt(['two', 'three', 'four', '0'], tree) !== 4) throw Error()
+if (readAt([Symbol()], tree) !== undefined) throw Error()
 
-if (readAt(tree) !== tree) throw Error()
-if (readAt(tree, 'two') !== tree.two) throw Error()
-if (readAt(tree, 'one') !== 1) throw Error()
-if (readAt(tree, 'two', 'three', 'four', '0') !== 4) throw Error()
-if (readAt(tree, Symbol()) !== undefined) throw Error()
+if (read(tree) !== tree) throw Error()
+if (read(tree, 'two') !== tree.two) throw Error()
+if (read(tree, 'one') !== 1) throw Error()
+if (read(tree, 'two', 'three', 'four', '0') !== 4) throw Error()
+if (read(tree, Symbol()) !== undefined) throw Error()
 
 /**
  * replace
@@ -202,7 +204,7 @@ tree = merge(prev, next)
 if (tree !== prev) throw Error()
 
 /**
- * replaceAtPath
+ * replaceAt
  */
 
 RESET()
@@ -214,7 +216,7 @@ prev = immutableClone({
 
 next = immutableClone({six: 6})
 
-tree = replaceAtPath(prev, next, ['three', 'four'])
+tree = replaceAt(['three', 'four'], prev, next)
 
 if (tree === prev || tree === next) throw Error()
 // Must deep-patch the new value in.
@@ -243,14 +245,14 @@ try {
 next = immutableClone({
   four: {six: undefined, seven: null}, five: 5
 })
-tree = replaceAtPath(prev, next, ['three'])
+tree = replaceAt(['three'], prev, next)
 if (!(deepEqual(tree.three, {four: {}, five: 5}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
 next = immutableClone({
   six: [6]
 })
-tree = replaceAtPath(prev, next, ['three', 'four'])
+tree = replaceAt(['three', 'four'], prev, next)
 
 function inspect (value) {
   return require('util').inspect(value, {depth: null})
@@ -261,11 +263,11 @@ if (tree !== prev) throw Error()
 // Must replace plain objects with arrays.
 prev = immutableClone({one: {}})
 next = immutableClone(['two'])
-tree = replaceAtPath(prev, next, ['one'])
+tree = replaceAt(['one'], prev, next)
 if (!deepEqual(tree, {one: ['two']})) throw Error()
 
 /**
- * mergeAtPath
+ * mergeAt
  */
 
 RESET()
@@ -280,7 +282,7 @@ next = immutableClone({
   four: 4
 })
 
-tree = mergeAtPath(prev, next, ['one'])
+tree = mergeAt(['one'], prev, next)
 
 if (tree === prev || tree === next) throw Error()
 // Must deep-patch the new value in.
@@ -309,20 +311,20 @@ try {
 
 // Must ignore or unset keys with nil values.
 next = {three: undefined, six: null}
-tree = mergeAtPath(prev, next, ['one'])
+tree = mergeAt(['one'], prev, next)
 if (!(deepEqual(tree.one, {two: 2}))) throw Error()
 
 // Must return the same reference if the result would be deep equal.
 next = immutableClone({
   one: {three: [3]}
 })
-tree = mergeAtPath(prev, next, [])
+tree = mergeAt([], prev, next)
 if (tree !== prev) throw Error()
 
 // Must replace plain objects with arrays.
 prev = immutableClone({one: {}})
 next = immutableClone(['two'])
-tree = mergeAtPath(prev, next, ['one'])
+tree = mergeAt(['one'], prev, next)
 if (!deepEqual(tree, {one: ['two']})) throw Error()
 
 /**
@@ -410,4 +412,4 @@ if (tree !== prev) throw Error()
  * Misc
  */
 
-console.info(`[${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}] Finished test without errors.`)
+console.log(`[${new Date().getHours()}:${new Date().getMinutes()}:${new Date().getSeconds()}] Finished test without errors.`)

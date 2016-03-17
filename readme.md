@@ -15,9 +15,10 @@ built around immutable data. Food for thought:
 * [Description](#description)
 * [Installation](#installation)
 * [API](#api)
-  * [`readAtPath`](#readatpathtree-path)
-  * [`replaceAtPath`](#replaceatpathprev-value-path)
-  * [`mergeAtPath`](#mergeatpathprev-value-path)
+  * [`readAt`](#readatpath-tree)
+  * [`read`](#readtree-keys)
+  * [`replaceAt`](#replaceatpath-prev-value)
+  * [`mergeAt`](#mergeatpath-prev-value)
   * [`deepEqual`](#deepequalone-other)
   * [`immutableClone`](#immutableclonevalue)
 * [Compatibility](#compatibility)
@@ -56,22 +57,37 @@ console.assert(tree.two.three === 'three')
 
 ## API
 
-### `readAtPath(tree, path)`
+### `readAt(path, tree)`
 
-Takes a data tree and safely reads a value at the given path. If the path is
-unreachable, returns `undefined`.
+Takes a path and a tree and reads a value at that path. If unreachable, returns
+`undefined`.
 
 ```javascript
-import {readAtPath} from 'emerge'
+import {readAt} from 'emerge'
 
 const tree = {
   one: {two: {three: 3}}
 }
 
-console.assert(readAtPath(tree, ['one', 'two', 'three']) === 3)
+console.assert(readAt(['one', 'two', 'three'], tree) === 3)
 ```
 
-### `replaceAtPath(prev, value, path)`
+### `read(tree, ...keys)`
+
+Like `readAt`, but takes a tree as the first argument and treats the remaining
+arguments as a path.
+
+```javascript
+import {read} from 'emerge'
+
+const tree = {
+  one: {two: {three: 3}}
+}
+
+console.assert(read(tree, 'one', 'two', 'three') === 3)
+```
+
+### `replaceAt(path, prev, value)`
 
 Creates a new immutable version of the given tree, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
@@ -82,7 +98,7 @@ Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
 Returns the original reference if the result would be deep-equal.
 
 ```javascript
-import {replaceAtPath} from 'emerge'
+import {replaceAt} from 'emerge'
 
 const prev = {
   one: {
@@ -94,7 +110,7 @@ const prev = {
 
 const next = {two: 'two'}
 
-const tree = replaceAtPath(prev, next, ['one'])
+const tree = replaceAt(['one'], prev, next)
 
 // Result:
 //   {
@@ -108,7 +124,7 @@ console.assert(tree.one.two === next.two)
 console.assert(tree.four === prev.four)
 ```
 
-### `mergeAtPath(prev, value, path)`
+### `mergeAt(path, prev, value)`
 
 Creates a new immutable version of the given tree, deep-patched by the given
 structure starting at the given path. The path must be an array of strings or
@@ -123,7 +139,7 @@ This is useful for updating multiple branches in one operation and preserving
 other data.
 
 ```javascript
-import {mergeAtPath} from 'emerge'
+import {mergeAt} from 'emerge'
 
 const prev = {
   one: {
@@ -137,7 +153,7 @@ const prev = {
 
 const patch = {two: {three: 'three'}}
 
-const tree = mergeAtPath(prev, patch, ['one'])
+const tree = mergeAt(['one'], prev, patch)
 
 // Result:
 //   {
@@ -173,6 +189,10 @@ console.assert(deepEqual(prev, next))
 
 Creates an immutable deep clone of the given value, ignoring keys with `null` or
 `undefined` values.
+
+As an optimisation tactic, this function trusts frozen objects to be deeply
+immutable (i.e. coming from another emerge function) and returns them as-is.
+It also considers `Blob` objects immutable.
 
 ```javascript
 import {immutableClone} from 'emerge'
