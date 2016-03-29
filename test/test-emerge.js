@@ -308,8 +308,8 @@ replaceAt: {
   const tree = replaceAt(['three', 'four'], prev, next)
 
   // Must differ from both source trees.
-  neq(tree, prev)
-  neq(tree, next)
+  ndeq(tree, prev)
+  ndeq(tree, next)
 
   // Must deep-patch the new value in.
   deq(tree.three.four, next)
@@ -364,8 +364,8 @@ mergeAt: {
   const tree = mergeAt(['one'], prev, next)
 
   // Must differ from both source trees.
-  neq(tree, prev)
-  neq(tree, next)
+  ndeq(tree, prev)
+  ndeq(tree, next)
 
   // Must deep-patch the new value in.
   deq(tree.one.two, next.two)
