@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.0.18",
+  "version": "0.0.19",
   "main": "dist/emerge.js",
   "scripts": {
     "start": "gulp",
@@ -23,12 +23,12 @@
     "url": "https://github.com/Mitranim/emerge.git"
   },
   "devDependencies": {
-    "del": "^2.0.2",
+    "del": "^2.2.0",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-babel": "^5.3.0",
-    "gulp-load-plugins": "^1.0.0",
+    "gulp-load-plugins": "^1.2.0",
     "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^1.4.2",
+    "gulp-uglify": "^1.5.3",
     "gulp-watch": "^4.3.5"
   }
 }
