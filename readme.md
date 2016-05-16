@@ -17,10 +17,10 @@ built around immutable data. Food for thought:
 * [API](#api)
   * [`readAt`](#readatpath-tree)
   * [`read`](#readtree-keys)
-  * [`replaceAt`](#replaceatpath-prev-value)
-  * [`mergeAt`](#mergeatpath-prev-value)
+  * [`putAt`](#putatpath-prev-value)
+  * [`patchAt`](#patchatpath-prev-value)
   * [`deepEqual`](#deepequalone-other)
-  * [`immutableClone`](#immutableclonevalue)
+  * [`copy`](#copyvalue)
 * [Compatibility](#compatibility)
 
 ## Installation
@@ -34,25 +34,25 @@ npm i --save-dev emerge
 Example usage:
 
 ```javascript
-import {mergeAtRoot} from 'emerge'
+import {patchAt} from 'emerge'
 
-const prev = {
+const oldTree = {
   one: [1],
   two: {three: 3}
 }
 
-const next = {
+const part = {
   two: {three: 'three'}
 }
 
 // Result of deep merge, immutable.
-const tree = mergeAtRoot(prev, next)
+const newTree = patchAt([], oldTree, part)
 
 // Unchanged data is referentially equal.
-console.assert(tree.one === prev.one)
+console.assert(newTree.one === oldTree.one)
 
 // Changed parts.
-console.assert(tree.two.three === 'three')
+console.assert(newTree.two.three === 'three')
 ```
 
 ## API
@@ -87,7 +87,9 @@ const tree = {
 console.assert(read(tree, 'one', 'two', 'three') === 3)
 ```
 
-### `replaceAt(path, prev, value)`
+### `putAt(path, prev, value)`
+
+Renamed `replaceAt -> putAt` in `0.0.20`.
 
 Creates a new immutable version of the given tree, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
@@ -98,9 +100,9 @@ Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
 Returns the original reference if the result would be deep-equal.
 
 ```javascript
-import {replaceAt} from 'emerge'
+import {putAt} from 'emerge'
 
-const prev = {
+const oldTree = {
   one: {
     two: 2,
     three: 3
@@ -108,9 +110,9 @@ const prev = {
   four: [4]
 }
 
-const next = {two: 'two'}
+const part = {two: 'two'}
 
-const tree = replaceAt(['one'], prev, next)
+const newTree = putAt(['one'], oldTree, part)
 
 // Result:
 //   {
@@ -120,11 +122,13 @@ const tree = replaceAt(['one'], prev, next)
 //     four: [4]
 //   }
 
-console.assert(tree.one.two === next.two)
-console.assert(tree.four === prev.four)
+console.assert(newTree.one.two === part.two)
+console.assert(newTree.four === oldTree.four)
 ```
 
-### `mergeAt(path, prev, value)`
+### `patchAt(path, prev, value)`
+
+Renamed `mergeAt -> patchAt` in `0.0.20`.
 
 Creates a new immutable version of the given tree, deep-patched by the given
 structure starting at the given path. The path must be an array of strings or
@@ -139,9 +143,9 @@ This is useful for updating multiple branches in one operation and preserving
 other data.
 
 ```javascript
-import {mergeAt} from 'emerge'
+import {patchAt} from 'emerge'
 
-const prev = {
+const oldTree = {
   one: {
     two: {
       three: 3,
@@ -151,9 +155,9 @@ const prev = {
   five: [5]
 }
 
-const patch = {two: {three: 'three'}}
+const part = {two: {three: 'three'}}
 
-const tree = mergeAt(['one'], prev, patch)
+const newTree = patchAt(['one'], oldTree, part)
 
 // Result:
 //   {
@@ -166,9 +170,9 @@ const tree = mergeAt(['one'], prev, patch)
 //     five: [5]
 //   }
 
-console.assert(tree.one.two.three === next.two.three)
-console.assert(tree.one.four === prev.one.four)
-console.assert(tree.five === prev.five)
+console.assert(newTree.one.two.three === next.two.three)
+console.assert(newTree.one.four === oldTree.one.four)
+console.assert(newTree.five === oldTree.five)
 ```
 
 ### `deepEqual(one, other)`
@@ -185,21 +189,24 @@ const next = {one: NaN, two: [2]}
 console.assert(deepEqual(prev, next))
 ```
 
-### `immutableClone(value)`
+### `copy(value)`
 
-Creates an immutable deep clone of the given value, ignoring keys with `null` or
-`undefined` values.
+Replaced `immutableClone` in `0.0.20`.
 
-As an optimisation tactic, this function trusts frozen objects to be deeply
-immutable (i.e. coming from another emerge function) and returns them as-is.
-It also considers `Blob` objects immutable.
+Attempts to create a deep immutable clone of the given value. Follows a few
+special rules:
+
+* If `value` is a frozen object, it's returned as-is.
+* If `value` is an object that inherits from something other than `Object` or
+  `Array`, it's returned as-is without cloning or freezing. This allows to
+  circumvent immutability constraints when you want to include mutable
+  references in the tree.
+* `null` and `undefined` values are omitted when cloning.
 
 ```javascript
-import {immutableClone} from 'emerge'
+import {copy} from 'emerge'
 
-const tree = immutableClone({
-  one: 1
-})
+const tree = copy({one: 1})
 
 // Mutation attempts throw errors in strict mode.
 let error
@@ -211,10 +218,6 @@ try {
   console.assert(!!error)
 }
 ```
-
-## TODO
-
-Consider if we want to support symbol keys. (Note: `JSON.stringify` ignores them.)
 
 ## Compatibility
 

@@ -12,7 +12,7 @@
 const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
-const exec = require('child_process').exec
+const {exec} = require('child_process')
 
 /** ******************************* Globals **********************************/
 

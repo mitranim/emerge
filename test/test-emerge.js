@@ -13,29 +13,16 @@
  * Dependencies
  */
 
-const utils = require('./utils')
-const eq = utils.eq
-const deq = utils.deq
-const neq = utils.neq
-const ndeq = utils.ndeq
-const test = utils.test
-const throws = utils.throws
+const {eq, deq, neq, ndeq, test, throws} = require('./utils')
 
-const emerge = require('../lib/emerge')
-
-// Misc.
-const deepEqual = emerge.deepEqual
-const immutableClone = emerge.immutableClone
-
-// Reading.
-const read = emerge.read
-const readAt = emerge.readAt
-
-// Merging.
-const merge = emerge.merge
-const replace = emerge.replace
-const mergeAt = emerge.mergeAt
-const replaceAt = emerge.replaceAt
+const {
+  // Misc
+  deepEqual, copy,
+  // Reading
+  read, readAt,
+  // Merging
+  putAtRoot, patchAtRoot, putAt, patchAt
+} = require('../lib/emerge')
 
 /**
  * Test
@@ -75,13 +62,13 @@ deepEqual: {
   )
 }
 
-immutableClone: {
+copy: {
   const prev = {
     one: {two: NaN},
     three: {four: [4]}
   }
 
-  const tree = immutableClone(prev)
+  const tree = copy(prev)
 
   // Must be a non-referential copy.
   deq(tree, prev)
@@ -98,14 +85,14 @@ immutableClone: {
       three: undefined
     }
 
-    deq(immutableClone(prev), {one: 1})
+    deq(copy(prev), {one: 1})
   }
 
   // Must act as identity function for immutable objects, trusting them to be
   // deep-frozen.
   frozen: {
     const prev = Object.freeze({one: 1})
-    deq(immutableClone(prev), prev)
+    deq(copy(prev), prev)
   }
 }
 
@@ -177,20 +164,20 @@ read: {
   )
 }
 
-replace: {
-  const prev = immutableClone({
+putAtRoot: {
+  const prev = copy({
     one: {two: NaN},
     three: {four: 4},
     five: [5]
   })
 
-  const next = immutableClone({
+  const next = copy({
     one: {two: NaN},
     three: {four: [4]},
     six: 6
   })
 
-  const tree = replace(prev, next)
+  const tree = putAtRoot(prev, next)
 
   // Must be a non-referential copy of the next tree.
   deq(tree, next)
@@ -208,33 +195,33 @@ replace: {
 
   // Must ignore or unset keys with nil values.
   nil: {
-    const next = immutableClone({
+    const next = copy({
       one: {two: undefined},
       three: {four: null},
       six: null
     })
 
-    const tree0 = replace(prev, next)
+    const tree0 = putAtRoot(prev, next)
     deq(tree0, {one: {}, three: {}})
 
-    const tree1 = replace(undefined, next)
+    const tree1 = putAtRoot(undefined, next)
     deq(tree1, {one: {}, three: {}})
   }
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = immutableClone({
+    const next = copy({
       one: {two: NaN},
       three: {four: 4},
       five: [5]
     })
-    const tree = replace(prev, next)
+    const tree = putAtRoot(prev, next)
     eq(tree, prev)
   }
 }
 
-merge: {
-  const prev = immutableClone({
+patchAtRoot: {
+  const prev = copy({
     one: {two: NaN},
     three: {four: [4]},
     six: undefined,
@@ -242,7 +229,7 @@ merge: {
     ten: {eleven: 11, twelve: [12]}
   })
 
-  const next = immutableClone({
+  const next = copy({
     three: {five: 5},
     six: [6],
     seven: 7,
@@ -250,7 +237,7 @@ merge: {
     ten: {eleven: 'eleven', twelve: [12]}
   })
 
-  const tree = merge(prev, next)
+  const tree = patchAtRoot(prev, next)
 
   // Must differ from both source trees.
   ndeq(tree, prev)
@@ -280,32 +267,32 @@ merge: {
       ten: {eleven: 'eleven', twelve: undefined, thirteen: null}
     }
 
-    const tree0 = merge(prev, next)
+    const tree0 = patchAtRoot(prev, next)
     deq(tree0.ten, {eleven: 'eleven'})
 
-    const tree1 = merge(undefined, next)
+    const tree1 = patchAtRoot(undefined, next)
     deq(tree1.ten, {eleven: 'eleven'})
   }
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = immutableClone({
+    const next = copy({
       one: {two: NaN}
     })
-    const tree = merge(prev, next)
+    const tree = patchAtRoot(prev, next)
     eq(tree, prev)
   }
 }
 
-replaceAt: {
-  const prev = immutableClone({
+putAt: {
+  const prev = copy({
     one: {two: NaN},
     three: {four: {six: [6]}, five: 5}
   })
 
-  const next = immutableClone({six: 6})
+  const next = copy({six: [6], seven: 7})
 
-  const tree = replaceAt(['three', 'four'], prev, next)
+  const tree = putAt(['three', 'four'], prev, next)
 
   // Must differ from both source trees.
   ndeq(tree, prev)
@@ -317,6 +304,9 @@ replaceAt: {
   // Must retain unaffected values without changing their references.
   eq(tree.three.five, prev.three.five)
 
+  // Must retain unchanged values inside the patch without changing their references.
+  eq(tree.three.four.six, prev.three.four.six)
+
   // The new tree must be immutable.
   throws(function mutateTree () {tree.mutated = true})
 
@@ -325,43 +315,43 @@ replaceAt: {
 
   // Must ignore or unset keys with nil values.
   nil: {
-    const next = immutableClone({
+    const next = copy({
       four: {six: undefined, seven: null}, five: 5
     })
-    const tree = replaceAt(['three'], prev, next)
+    const tree = putAt(['three'], prev, next)
     deq(tree.three, {four: {}, five: 5})
   }
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = immutableClone({
+    const next = copy({
       six: [6]
     })
-    const tree = replaceAt(['three', 'four'], prev, next)
+    const tree = putAt(['three', 'four'], prev, next)
     eq(tree, prev)
   }
 
   // Must discriminate similar-looking plain objects and arrays.
   arrays: {
-    const prev = immutableClone({one: {0: 'two', length: 1}})
-    const next = immutableClone(['two'])
-    const tree = replaceAt(['one'], prev, next)
+    const prev = copy({one: {0: 'two', length: 1}})
+    const next = copy(['two'])
+    const tree = putAt(['one'], prev, next)
     deq(tree, {one: ['two']})
   }
 }
 
-mergeAt: {
-  const prev = immutableClone({
-    one: {two: 2, three: [3]},
+patchAt: {
+  const prev = copy({
+    one: {two: [2], three: [3]},
     five: NaN
   })
 
-  const next = immutableClone({
+  const next = copy({
     two: [2],
     four: 4
   })
 
-  const tree = mergeAt(['one'], prev, next)
+  const tree = patchAt(['one'], prev, next)
 
   // Must differ from both source trees.
   ndeq(tree, prev)
@@ -375,6 +365,9 @@ mergeAt: {
   eq(tree.one.three, prev.one.three)
   deq(tree.five, prev.five)
 
+  // Must retain unchanged values inside the patch without changing their references.
+  eq(tree.one.two, prev.one.two)
+
   // The new tree must be immutable.
   throws(function mutateTree () {tree.mutated = true})
 
@@ -384,24 +377,24 @@ mergeAt: {
   // Must ignore or unset keys with nil values.
   nil: {
     const next = {three: undefined, six: null}
-    const tree = mergeAt(['one'], prev, next)
-    deq(tree.one, {two: 2})
+    const tree = patchAt(['one'], prev, next)
+    deq(tree.one, {two: [2]})
   }
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = immutableClone({
+    const next = copy({
       one: {three: [3]}
     })
-    const tree = mergeAt([], prev, next)
+    const tree = patchAt([], prev, next)
     eq(tree, prev)
   }
 
   // Must discriminate similar-looking plain objects and arrays.
   arrays: {
-    const prev = immutableClone({one: {0: 'two', length: 1}})
-    const next = immutableClone(['two'])
-    const tree = mergeAt(['one'], prev, next)
+    const prev = copy({one: {0: 'two', length: 1}})
+    const next = copy(['two'])
+    const tree = patchAt(['one'], prev, next)
     deq(tree, {one: ['two']})
   }
 }

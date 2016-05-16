@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "main": "dist/emerge.js",
   "scripts": {
     "start": "gulp",
@@ -29,6 +29,7 @@
     "gulp-load-plugins": "^1.2.0",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.3",
-    "gulp-watch": "^4.3.5"
+    "gulp-watch": "^4.3.5",
+    "standard": "^7.0.1"
   }
 }

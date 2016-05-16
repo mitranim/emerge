@@ -3,7 +3,7 @@
 /* eslint-disable no-self-compare, block-spacing */
 
 // NOTE: this has meaning only if `deepEqual` test passes.
-const deepEqual = require(process.cwd() + '/lib/emerge').deepEqual
+const {deepEqual} = require(process.cwd() + '/lib/emerge')
 
 exports.testWith = testWith
 function testWith (compare, func) {
