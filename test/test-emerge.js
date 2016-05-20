@@ -21,7 +21,7 @@ const {
   // Reading
   read, readAt,
   // Merging
-  putAtRoot, patchAtRoot, putAt, patchAt
+  put, patch, putAt, patchAt
 } = require('../lib/emerge')
 
 /**
@@ -164,7 +164,7 @@ read: {
   )
 }
 
-putAtRoot: {
+put: {
   const prev = copy({
     one: {two: NaN},
     three: {four: 4},
@@ -177,7 +177,7 @@ putAtRoot: {
     six: 6
   })
 
-  const tree = putAtRoot(prev, next)
+  const tree = put(prev, next)
 
   // Must be a non-referential copy of the next tree.
   deq(tree, next)
@@ -201,10 +201,10 @@ putAtRoot: {
       six: null
     })
 
-    const tree0 = putAtRoot(prev, next)
+    const tree0 = put(prev, next)
     deq(tree0, {one: {}, three: {}})
 
-    const tree1 = putAtRoot(undefined, next)
+    const tree1 = put(undefined, next)
     deq(tree1, {one: {}, three: {}})
   }
 
@@ -215,12 +215,12 @@ putAtRoot: {
       three: {four: 4},
       five: [5]
     })
-    const tree = putAtRoot(prev, next)
+    const tree = put(prev, next)
     eq(tree, prev)
   }
 }
 
-patchAtRoot: {
+patch: {
   const prev = copy({
     one: {two: NaN},
     three: {four: [4]},
@@ -237,7 +237,7 @@ patchAtRoot: {
     ten: {eleven: 'eleven', twelve: [12]}
   })
 
-  const tree = patchAtRoot(prev, next)
+  const tree = patch(prev, next)
 
   // Must differ from both source trees.
   ndeq(tree, prev)
@@ -267,10 +267,10 @@ patchAtRoot: {
       ten: {eleven: 'eleven', twelve: undefined, thirteen: null}
     }
 
-    const tree0 = patchAtRoot(prev, next)
+    const tree0 = patch(prev, next)
     deq(tree0.ten, {eleven: 'eleven'})
 
-    const tree1 = patchAtRoot(undefined, next)
+    const tree1 = patch(undefined, next)
     deq(tree1.ten, {eleven: 'eleven'})
   }
 
@@ -279,7 +279,7 @@ patchAtRoot: {
     const next = copy({
       one: {two: NaN}
     })
-    const tree = patchAtRoot(prev, next)
+    const tree = patch(prev, next)
     eq(tree, prev)
   }
 }
