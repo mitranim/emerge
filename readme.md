@@ -21,6 +21,8 @@ built around immutable data. Food for thought:
   * [`patchAt`](#patchatpath-prev-value)
   * [`deepEqual`](#deepequalone-other)
   * [`copy`](#copyvalue)
+  * [`is`](#is-one-other)
+* [Merge Semantics](#merge-semantics)
 * [Compatibility](#compatibility)
 
 ## Installation
@@ -191,33 +193,49 @@ console.assert(deepEqual(prev, next))
 
 ### `copy(value)`
 
-Replaced `immutableClone` in `0.0.20`.
+Renamed `immutableClone -> copy` in `0.0.20`.
 
-Attempts to create a deep immutable clone of the given value. Follows a few
-special rules:
-
-* If `value` is a frozen object, it's returned as-is.
-* If `value` is an object that inherits from something other than `Object` or
-  `Array`, it's returned as-is without cloning or freezing. This allows to
-  circumvent immutability constraints when you want to include mutable
-  references in the tree.
-* `null` and `undefined` values are omitted when cloning.
+Attempts to create a deep immutable clone of the given value, following the
+standard [merge semantics](#merge-semantics).
 
 ```javascript
 import {copy} from 'emerge'
 
 const tree = copy({one: 1})
 
-// Mutation attempts throw errors in strict mode.
-let error
-try {
-  tree.one = 2
-} catch (err) {
-  error = err
-} finally {
-  console.assert(!!error)
-}
+// This will silently fail in loose mode and throw an exception in strict mode.
+tree.one = 2
 ```
+
+### `is(one, other)`
+
+Same as `===` but considers `NaN` equal to itself. Used internally for all
+identity checks.
+
+## Merge Semantics
+
+When merging or copying, emerge follows a few special rules:
+
+* Frozen objects are reused as-is.
+* In objects, `null` and `undefined` values are considered non-existent. Setting
+  a value to `null` is the same as deleting it.
+* Non-data objects are reused as-is. See rationale below.
+
+Emerge differentiates _data_ and _non-data_ objects. The following objects are
+considered data:
+* `[]` or `new Array`
+* `{}` or `new Object`
+* `Object.create(null)`
+
+These examples are not considered data:
+* `function () {}`
+* `Object.create({})`
+* `new class {}`
+
+Non-data references are considered outside the scope of Emerge, and included
+as-is. Emerge makes no attempt to clone or freeze them. This provides an outlet
+for scenarios when you're constrained by an Emerge-based API and feel the need
+to include a "special" mutable object into the tree.
 
 ## Compatibility
 

@@ -171,11 +171,11 @@ put: {
     five: [5]
   })
 
-  const next = copy({
+  const next = {
     one: {two: NaN},
     three: {four: [4]},
     six: 6
-  })
+  }
 
   const tree = put(prev, next)
 
@@ -195,11 +195,11 @@ put: {
 
   // Must ignore or unset keys with nil values.
   nil: {
-    const next = copy({
+    const next = {
       one: {two: undefined},
       three: {four: null},
       six: null
-    })
+    }
 
     const tree0 = put(prev, next)
     deq(tree0, {one: {}, three: {}})
@@ -210,11 +210,12 @@ put: {
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = copy({
+    const next = {
       one: {two: NaN},
       three: {four: 4},
-      five: [5]
-    })
+      five: [5],
+      twelve: null
+    }
     const tree = put(prev, next)
     eq(tree, prev)
   }
@@ -229,13 +230,13 @@ patch: {
     ten: {eleven: 11, twelve: [12]}
   })
 
-  const next = copy({
+  const next = {
     three: {five: 5},
     six: [6],
     seven: 7,
     eight: {nine: 9},
     ten: {eleven: 'eleven', twelve: [12]}
-  })
+  }
 
   const tree = patch(prev, next)
 
@@ -276,9 +277,10 @@ patch: {
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = copy({
-      one: {two: NaN}
-    })
+    const next = {
+      one: {two: NaN},
+      twelve: null
+    }
     const tree = patch(prev, next)
     eq(tree, prev)
   }
@@ -290,7 +292,7 @@ putAt: {
     three: {four: {six: [6]}, five: 5}
   })
 
-  const next = copy({six: [6], seven: 7})
+  const next = {six: [6], seven: 7}
 
   const tree = putAt(['three', 'four'], prev, next)
 
@@ -311,22 +313,23 @@ putAt: {
   throws(function mutateTree () {tree.mutated = true})
 
   // The patched value must be immutable.
-  throws(function mutateDeep () {tree.three.four.six = 7})
+  throws(function mutateDeep () {tree.three.four.six.push(7)})
 
   // Must ignore or unset keys with nil values.
   nil: {
-    const next = copy({
+    const next = {
       four: {six: undefined, seven: null}, five: 5
-    })
+    }
     const tree = putAt(['three'], prev, next)
     deq(tree.three, {four: {}, five: 5})
   }
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = copy({
-      six: [6]
-    })
+    const next = {
+      six: [6],
+      twelve: null
+    }
     const tree = putAt(['three', 'four'], prev, next)
     eq(tree, prev)
   }
@@ -334,7 +337,7 @@ putAt: {
   // Must discriminate similar-looking plain objects and arrays.
   arrays: {
     const prev = copy({one: {0: 'two', length: 1}})
-    const next = copy(['two'])
+    const next = ['two']
     const tree = putAt(['one'], prev, next)
     deq(tree, {one: ['two']})
   }
@@ -346,10 +349,10 @@ patchAt: {
     five: NaN
   })
 
-  const next = copy({
+  const next = {
     two: [2],
     four: 4
-  })
+  }
 
   const tree = patchAt(['one'], prev, next)
 
@@ -383,9 +386,10 @@ patchAt: {
 
   // Must return the same reference if the result would be deep equal.
   equal: {
-    const next = copy({
-      one: {three: [3]}
-    })
+    const next = {
+      one: {three: [3]},
+      twelve: null
+    }
     const tree = patchAt([], prev, next)
     eq(tree, prev)
   }
@@ -393,7 +397,7 @@ patchAt: {
   // Must discriminate similar-looking plain objects and arrays.
   arrays: {
     const prev = copy({one: {0: 'two', length: 1}})
-    const next = copy(['two'])
+    const next = ['two']
     const tree = patchAt(['one'], prev, next)
     deq(tree, {one: ['two']})
   }
