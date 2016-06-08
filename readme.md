@@ -1,29 +1,56 @@
-[![js-standard-style](https://img.shields.io/badge/code%20style-standard-brightgreen.svg?style=flat)](http://standardjs.com)
-
 ## Description
 
-Utilities for creating and merging immutable data trees. Friendly to functional
-programming. Only plain JS objects, no custom classes, no OOP, bring your own
-data. Extremely lightweight (2 KB minified & mangled).
+Utilities for using plain JavaScript objects as
+<a href="https://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable</a>,
+<a href="https://en.wikipedia.org/wiki/Persistent_data_structure" target="_blank">persistent</a>
+data structures.
 
-Features efficient deep merging and referential equality. Helpful for systems
-built around immutable data. Food for thought:
-[[1]](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md).
+Immutable entities can't be modified without creating a new version. In other
+words, they're _values_ rather than _objects_. JavaScript fails to differentiate
+between these concepts. Emerge helps you to bolt this on top of the language.
+
+"Persistent" means that new versions share as much structure as possible with
+old versions. This conserves memory and allows to use referential equality
+(`===`) as a fast substitute for value equality (`deepEqual`).
+
+FP-friendly: only plain JS objects, no classes, no OO, bring your own data.
+Extremely lightweight (2 KB minified & mangled).
+
+Helpful when building systems around immutable values. Inspired by Rich Hickey's
+amazing talk
+<a href="https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md" target="_blank">"Are We There Yet"</a>
+(transcript).
 
 ## TOC
 
 * [Description](#description)
+* [Why](#why)
 * [Installation](#installation)
 * [API](#api)
-  * [`readAt`](#readatpath-tree)
-  * [`read`](#readtree-keys)
   * [`putAt`](#putatpath-prev-value)
   * [`patchAt`](#patchatpath-prev-value)
-  * [`deepEqual`](#deepequalone-other)
   * [`copy`](#copyvalue)
   * [`is`](#is-one-other)
+  * [`deepEqual`](#deepequalone-other)
+  * [`get`](#getvalue-key)
+  * [`scan`](#scanvalue-path)
+  * [`getIn`](#getinvalue-path)
+  * [`getAt`](#getatpath-value)
 * [Merge Semantics](#merge-semantics)
 * [Compatibility](#compatibility)
+
+## Why
+
+Why not just use ImmutableJS or another existing library?
+
+1. Plain data. Emerge uses plain objects and lists.
+
+* Uniform interface to data: read at path, set at path. No methods.
+* Easy to explore data in REPL.
+* Can be serialised into JSON and back without losing information.
+
+2. Size. ImmutableJS is 140+ KB minified, unacceptable. Emerge is just 2 KB
+minified.
 
 ## Installation
 
@@ -36,7 +63,7 @@ npm i --save-dev emerge
 Example usage:
 
 ```javascript
-import {patchAt} from 'emerge'
+const {patchAt} = require('emerge')
 
 const oldTree = {
   one: [1],
@@ -50,59 +77,27 @@ const part = {
 // Result of deep merge, immutable.
 const newTree = patchAt([], oldTree, part)
 
-// Unchanged data is referentially equal.
-console.assert(newTree.one === oldTree.one)
+// Unchanged values retain their references.
+newTree.one === oldTree.one  // true
 
-// Changed parts.
-console.assert(newTree.two.three === 'three')
+// New parts are merged-in.
+newTree.two.three === 'three'  // true
 ```
 
 ## API
 
-### `readAt(path, tree)`
-
-Takes a path and a tree and reads a value at that path. If unreachable, returns
-`undefined`.
-
-```javascript
-import {readAt} from 'emerge'
-
-const tree = {
-  one: {two: {three: 3}}
-}
-
-console.assert(readAt(['one', 'two', 'three'], tree) === 3)
-```
-
-### `read(tree, ...keys)`
-
-Like `readAt`, but takes a tree as the first argument and treats the remaining
-arguments as a path.
-
-```javascript
-import {read} from 'emerge'
-
-const tree = {
-  one: {two: {three: 3}}
-}
-
-console.assert(read(tree, 'one', 'two', 'three') === 3)
-```
-
 ### `putAt(path, prev, value)`
 
-Renamed `replaceAt -> putAt` in `0.0.20`.
-
-Creates a new immutable version of the given tree, patched with the given value
+Creates a new immutable version of the given value, patched with the given value
 at the given path. The path must be an array of strings or symbols. Preserves as
 many original references as possible. The original is unaffected.
 
-Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
+Ignores/removes nodes that receive nil values (`null` or `undefined`).
 
 Returns the original reference if the result would be deep-equal.
 
 ```javascript
-import {putAt} from 'emerge'
+const {putAt} = require('emerge')
 
 const oldTree = {
   one: {
@@ -124,20 +119,18 @@ const newTree = putAt(['one'], oldTree, part)
 //     four: [4]
 //   }
 
-console.assert(newTree.one.two === part.two)
-console.assert(newTree.four === oldTree.four)
+newTree.one.two === part.two   // true
+newTree.four === oldTree.four  // true
 ```
 
 ### `patchAt(path, prev, value)`
 
-Renamed `mergeAt -> patchAt` in `0.0.20`.
-
-Creates a new immutable version of the given tree, deep-patched by the given
+Creates a new immutable version of the given value, deep-patched by the given
 structure starting at the given path. The path must be an array of strings or
 symbols. Preserves as many original references as possible. The original is
 unaffected.
 
-Ignores/removes tree leaves that receive nil values (`null` or `undefined`).
+Ignores/removes nodes that receive nil values (`null` or `undefined`).
 
 Returns the original reference if the result would be deep-equal.
 
@@ -145,7 +138,7 @@ This is useful for updating multiple branches in one operation and preserving
 other data.
 
 ```javascript
-import {patchAt} from 'emerge'
+const {patchAt} = require('emerge')
 
 const oldTree = {
   one: {
@@ -172,34 +165,18 @@ const newTree = patchAt(['one'], oldTree, part)
 //     five: [5]
 //   }
 
-console.assert(newTree.one.two.three === next.two.three)
-console.assert(newTree.one.four === oldTree.one.four)
-console.assert(newTree.five === oldTree.five)
-```
-
-### `deepEqual(one, other)`
-
-True if the values are deeply equal, ignoring prototypes and non-enumerable
-properties.
-
-```javascript
-import {deepEqual} from 'emerge'
-
-const prev = {one: NaN, two: [2]}
-const next = {one: NaN, two: [2]}
-
-console.assert(deepEqual(prev, next))
+newTree.one.two.three === next.two.three   // true
+newTree.one.four === oldTree.one.four      // true
+newTree.five === oldTree.five              // true
 ```
 
 ### `copy(value)`
 
-Renamed `immutableClone -> copy` in `0.0.20`.
-
 Attempts to create a deep immutable clone of the given value, following the
-standard [merge semantics](#merge-semantics).
+[merge semantics](#merge-semantics).
 
 ```javascript
-import {copy} from 'emerge'
+const {copy} = require('emerge')
 
 const tree = copy({one: 1})
 
@@ -211,6 +188,69 @@ tree.one = 2
 
 Same as `===` but considers `NaN` equal to itself. Used internally for all
 identity checks.
+
+### `deepEqual(one, other)`
+
+True if the values are deeply equal. Ignores prototypes and non-enumerable
+properties.
+
+```javascript
+const {deepEqual} = require('emerge')
+
+const prev = {one: NaN, two: [2]}
+const next = {one: NaN, two: [2]}
+
+deepEqual(prev, next)  // true
+```
+
+### `get(value, key)`
+
+Reads property `key` on `value`. Unlike dot or bracket notation, this is safe to
+use on `null` or `undefined` values.
+
+```js
+get(null, 'one')
+// undefined
+
+get({one: 1}, 'one')
+// 1
+```
+
+### `scan(value, ...path)`
+
+Renamed `read -> scan` in `0.0.24`.
+
+Like `get` but takes many keys and reads a nested property at that path. If
+the path is unreachable, returns `undefined`.
+
+```js
+scan({one: {two: 2}}, 'one', 'two')
+// 2
+```
+
+### `getIn(value, path)`
+
+Added in `0.0.24`.
+
+Like `scan` but expects the entire `path` as the second argument. Useful when
+path is determined dynamically.
+
+```js
+getIn({one: {two: 2}}, ['one', 'two'])
+// 2
+```
+
+### `getAt(value, path)`
+
+Renamed `readAt -> getAt` in `0.0.24`.
+
+Like `getIn` but expects the entire `path` as the _first_ argument. Useful in
+function composition contexts when path is known in advance.
+
+```js
+getAt(['one', 'two'], {one: {two: 2}})
+// 2
+```
 
 ## Merge Semantics
 
@@ -234,7 +274,7 @@ These examples are not considered data:
 
 Non-data references are considered outside the scope of Emerge, and included
 as-is. Emerge makes no attempt to clone or freeze them. This provides an outlet
-for scenarios when you're constrained by an Emerge-based API and feel the need
+for scenarios when you're constrained by an Emerge-based API but feel the need
 to include a "special" mutable object into the tree.
 
 ## Compatibility

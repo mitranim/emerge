@@ -1,6 +1,6 @@
 'use strict'
 
-/* eslint-disable no-multi-spaces, no-empty-label, no-label-var, no-labels, block-spacing */
+/* global Symbol */
 
 /**
  * TODO
@@ -19,7 +19,7 @@ const {
   // Misc
   deepEqual, copy,
   // Reading
-  read, readAt,
+  get, scan, getIn, getAt,
   // Merging
   put, patch, putAt, patchAt
 } = require('../lib/emerge')
@@ -49,16 +49,9 @@ deepEqual: {
     six: 6
   }
 
-  test(
-    deepEqual,
-
-    {0: one,
-     1: other0,
-     $: true},
-
-    {0: one,
-     1: other1,
-     $: false}
+  test(deepEqual,
+    {0: one, 1: other0, $: true},
+    {0: one, 1: other1, $: false}
   )
 }
 
@@ -96,71 +89,62 @@ copy: {
   }
 }
 
-readAt: {
-  const tree = {
-    one: 1,
-    two: {three: {four: [4, 5]}}
-  }
-
-  test(
-    readAt,
-
-    {0: [],
-     1: tree,
-     $: tree},
-
-    {0: [],
-     1: tree,
-     $: tree},
-
-    {0: ['two'],
-     1: tree,
-     $: tree.two},
-
-    {0: ['one'],
-     1: tree,
-     $: 1},
-
-    {0: ['two', 'three', 'four', '0'],
-     1: tree,
-     $: 4},
-
-    {0: [Symbol()],
-     1: tree,
-     $: undefined}
+get: {
+  test(get,
+    {0: undefined, 1: undefined,       $: undefined},
+    {0: {one: 1},  1: 'one',           $: 1},
+    {0: {one: 1},  1: 'one', 2: 'two', $: 1}
   )
 }
 
-read: {
+scan: {
   const tree = {
     one: 1,
     two: {three: {four: [4, 5]}}
   }
 
-  test(
-    read,
+  test(scan,
+    {0: undefined,                                          $: undefined},
+    {0: undefined, 1: 'one',                                $: undefined},
+    {0: tree,                                               $: tree},
+    {0: tree,      1: 'two',                                $: tree.two},
+    {0: tree,      1: 'one',                                $: 1},
+    {0: tree,      1: 'two', 2: 'three', 3: 'four', 4: '0', $: 4},
+    {0: tree,      1: Symbol(),                             $: undefined}
+  )
+}
 
-    {0: tree,
-     $: tree},
+getIn: {
+  const tree = {
+    one: 1,
+    two: {three: {four: [4, 5]}}
+  }
 
-    {0: tree,
-     1: 'two',
-     $: tree.two},
+  test(getIn,
+    {0: undefined, 1: [],                            $: undefined},
+    {0: tree,      1: [],                            $: tree},
+    {0: tree,      1: [],                            $: tree},
+    {0: tree,      1: ['two'],                       $: tree.two},
+    {0: tree,      1: ['one'],                       $: 1},
+    {0: tree,      1: ['two', 'three', 'four', '0'], $: 4},
+    {0: tree,      1: [Symbol()],                    $: undefined}
+  )
+}
 
-    {0: tree,
-     1: 'one',
-     $: 1},
+getAt: {
+  const tree = {
+    one: 1,
+    two: {three: {four: [4, 5]}}
+  }
 
-    {0: tree,
-     1: 'two',
-     2: 'three',
-     3: 'four',
-     4: '0',
-     $: 4},
-
-    {0: tree,
-     1: Symbol(),
-     $: undefined}
+  test(getAt,
+    {0: [],                            1: undefined, $: undefined},
+    {0: [],                            1: tree,      $: tree},
+    {0: [],                            1: tree,      $: tree},
+    {0: ['two'],                       1: tree,      $: tree.two},
+    {0: ['one'],                       1: tree,      $: 1},
+    {0: ['two', 'three', 'four', '0'], 1: tree,      $: 4},
+    {0: [Symbol()],                    1: tree,      $: undefined}
   )
 }
 

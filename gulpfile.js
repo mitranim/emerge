@@ -43,7 +43,10 @@ gulp.task('compile', () => (
 
 gulp.task('minify', () => (
   gulp.src(src.dist)
-    .pipe($.uglify({mangle: true, compress: {warnings: false}}))
+    .pipe($.uglify({
+      mangle: true,
+      compress: {screw_ie8: true}
+    }))
     .pipe($.rename(path => {
       path.extname = '.min.js'
     }))

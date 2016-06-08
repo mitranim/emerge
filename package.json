@@ -1,18 +1,18 @@
 {
   "name": "emerge",
-  "version": "0.0.23",
+  "version": "0.0.24",
   "main": "dist/emerge.js",
   "scripts": {
     "start": "gulp",
     "test": "node test/test",
     "prepublish": "gulp build && node test/test"
   },
-  "description": "Utilities for immutable data structures. Plain-object-oriented (no OOP).",
+  "description": "Utils for immutable, persistent data structures. Plain-data-oriented (no OO)",
   "keywords": [
     "immutable",
-    "data",
-    "trees",
-    "pojo"
+    "persistent",
+    "plain",
+    "data"
   ],
   "authors": [
     "Mitranim <me@mitranim.com>"
@@ -23,13 +23,14 @@
     "url": "https://github.com/Mitranim/emerge.git"
   },
   "devDependencies": {
+    "babel-eslint": "^6.0.4",
     "del": "^2.2.0",
+    "eslint": "^2.11.1",
     "gulp": "gulpjs/gulp#4.0",
     "gulp-babel": "^5.3.0",
     "gulp-load-plugins": "^1.2.0",
     "gulp-rename": "^1.2.2",
     "gulp-uglify": "^1.5.3",
-    "gulp-watch": "^4.3.5",
-    "standard": "^7.0.1"
+    "gulp-watch": "^4.3.5"
   }
 }
