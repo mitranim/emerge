@@ -47,7 +47,7 @@ Why not just use ImmutableJS or another existing library?
 
 * Uniform interface to data: read at path, set at path. No methods.
 * Easy to explore data in REPL.
-* Can be serialised into JSON and back without losing information.
+* Serialise into JSON and back without losing information.
 
 2. Size. ImmutableJS is 140+ KB minified, unacceptable. Emerge is just 2 KB
 minified.

@@ -6,12 +6,12 @@
 const {deepEqual} = require(process.cwd() + '/lib/emerge')
 
 exports.testWith = testWith
-function testWith (compare, func) {
+function testWith (compare, fun) {
   for (const config of slice(arguments, 2)) {
     const args = toList(config)
-    const result = func.apply(null, args)
+    const result = fun.apply(null, args)
     if (!compare(result, config.$)) {
-      throw Error(`Function:\n  ${blue(inspect(func))}\n` +
+      throw Error(`Function:\n  ${blue(inspect(fun))}\n` +
                   `Arguments:\n  ${blue(inspect(args))}\n` +
                   `Expected:\n  ${blue(inspect(config.$))}\n` +
                   `Got:\n  ${red(inspect(result))}`)
@@ -20,7 +20,7 @@ function testWith (compare, func) {
 }
 
 exports.test = test
-function test (func) {
+function test () {
   testWith.apply(null, [equal].concat(slice(arguments)))
 }
 
@@ -49,13 +49,13 @@ function ndeq (a, b) {
 }
 
 exports.throws = throws
-function throws (func) {
+function throws (fun) {
   let error
   let value
   const args = slice(arguments, 1)
-  try {value = func.apply(null, args)} catch (err) {error = err}
+  try {value = fun.apply(null, args)} catch (err) {error = err}
   if (!error) {
-    throw Error(`Function:\n  ${blue(inspect(func))}\n` +
+    throw Error(`Function:\n  ${blue(inspect(fun))}\n` +
                               `Arguments:\n  ${blue(inspect(args))}\n` +
                               `Expected to ${red('throw')}\n` +
                               `Got:\n  ${blue(inspect(value))}`)
