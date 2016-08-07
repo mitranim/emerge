@@ -256,10 +256,10 @@ getAt(['one', 'two'], {one: {two: 2}})
 
 When merging or copying, emerge follows a few special rules:
 
-* Frozen objects are reused as-is.
+* Reuse frozen objects instead of cloning.
 * In objects, `null` and `undefined` values are considered non-existent. Setting
   a value to `null` is the same as deleting it.
-* Non-data objects are reused as-is. See rationale below.
+* Non-data objects are reused instead of cloning. See rationale below.
 
 Emerge differentiates _data_ and _non-data_ objects. The following objects are
 considered data:
@@ -272,7 +272,7 @@ These examples are not considered data:
 * `Object.create({})`
 * `new class {}`
 
-Non-data references are considered outside the scope of Emerge, and included
+Non-data references are considered outside the scope of Emerge, and reused
 as-is. Emerge makes no attempt to clone or freeze them. This provides an outlet
 for scenarios when you're constrained by an Emerge-based API but feel the need
 to include a "special" mutable object into the tree.
