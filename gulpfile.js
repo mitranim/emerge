@@ -1,20 +1,13 @@
 'use strict'
 
-/**
- * Requires gulp 4.0:
- *   "gulp": "gulpjs/gulp#4.0"
- *
- * Requires Node.js 4.0+
- */
-
-/** **************************** Dependencies ********************************/
+/* ***************************** Dependencies ********************************/
 
 const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
 const {exec} = require('child_process')
 
-/** ******************************* Globals **********************************/
+/* ******************************** Globals **********************************/
 
 const src = {
   lib: 'lib/**/*.js',
@@ -29,7 +22,9 @@ const testCommand = require('./package').scripts.test
 
 function noop () {}
 
-/** ******************************** Tasks ***********************************/
+let testProc
+
+/* ********************************* Tasks ***********************************/
 
 gulp.task('clear', () => (
   del(out).catch(noop)
@@ -41,11 +36,13 @@ gulp.task('compile', () => (
     .pipe(gulp.dest(out))
 ))
 
+// Purely for evaluating minified code size.
 gulp.task('minify', () => (
   gulp.src(src.dist)
     .pipe($.uglify({
       mangle: true,
-      compress: {screw_ie8: true}
+      compress: {warnings: false, screw_ie8: true},
+      wrap: true
     }))
     .pipe($.rename(path => {
       path.extname = '.min.js'
@@ -54,9 +51,24 @@ gulp.task('minify', () => (
 ))
 
 gulp.task('test', done => {
-  exec(testCommand, (err, stdout) => {
+  if (testProc) {
+    // Just started, let it finish
+    if (testProc.exitCode == null) return
+    testProc.kill()
+  }
+
+  $.util.log('Test started')
+
+  testProc = exec(testCommand, (err, stdout, stderr) => {
     process.stdout.write(stdout)
-    done(err)
+    process.stderr.write(stderr)
+
+    if (err) {
+      throw new $.util.PluginError('lib:test', 'Test failed', {showProperties: false})
+    } else {
+      $.util.log('Test finished')
+      done()
+    }
   })
 })
 

@@ -12,12 +12,12 @@ require.extensions['.js'] = (module, path) => {
   )
 }
 
-require('./test-emerge')
+const {runReports} = require('./utils')
 
-console.log(`[${pad(new Date().getHours())}:${pad(new Date().getMinutes())}:${pad(new Date().getSeconds())}] Finished test without errors.`)
+runReports([
+  ...require('./test-bool'),
+  ...require('./test-read'),
+  ...require('./test-merge')
+])
 
-function pad (val) {
-  return typeof val !== 'string'
-    ? pad(String(val))
-    : val.length < 2 ? ('0' + val) : val
-}
+require('./test-old')

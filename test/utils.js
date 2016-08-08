@@ -1,98 +1,79 @@
 'use strict'
 
-/* eslint-disable no-self-compare, block-spacing */
+/**
+ * Testing Microframework
+ */
 
-// NOTE: this has meaning only if `deepEqual` test passes.
-const {deepEqual} = require(process.cwd() + '/lib/emerge')
+const {inspect} = require('util')
 
-exports.testWith = testWith
-function testWith (compare, fun) {
-  for (const config of slice(arguments, 2)) {
-    const args = toList(config)
-    const result = fun.apply(null, args)
-    if (!compare(result, config.$)) {
-      throw Error(`Function:\n  ${blue(inspect(fun))}\n` +
-                  `Arguments:\n  ${blue(inspect(args))}\n` +
-                  `Expected:\n  ${blue(inspect(config.$))}\n` +
-                  `Got:\n  ${red(inspect(result))}`)
-    }
+// type Details = {error}
+// type Context = [Details]
+// type Report  = [[Context], Bool]
+// type Test a  = a -> Report
+
+exports.report = report
+function report (ok, context) {
+  return [ok ? [] : [context], !!ok]
+}
+
+exports.runReports = runReports
+function runReports (reports) {
+  const [contexts, ok] = reports.reduce(mplus)
+  if (!ok) {
+    process.stderr.write(format(contexts))
+    process.exitCode = 1
   }
 }
 
-exports.test = test
-function test () {
-  testWith.apply(null, [equal].concat(slice(arguments)))
+exports.mplus = mplus
+function mplus ([c0, v0], [c1, v1]) {
+  return [mappendC(c0, c1), mappendV(v0, v1)]
 }
 
-exports.eq = eq
-function eq (a, b) {
-  test(equal, {0: a, 1: b, $: true})
+function mappendC (a, b) {
+  return a.concat(b)
 }
 
-exports.neq = neq
-function neq (a, b) {
-  test(equal, {0: a, 1: b, $: false})
+function mappendV (a, b) {
+  return a && b
 }
 
-function equal (a, b) {
-  return a === b || a !== a && b !== b
+exports.getMeta = getMeta
+function getMeta ({stackOffset = 0} = {}) {
+  const {stack} = Error()
+  const lines = stack.split(/\n/g)
+  const line = lines[lines.findIndex(x => /at getMeta /.test(x)) + stackOffset + 1]
+  const [, name, filename, row, col] = line.match(/at (\S+).*?([^/(]+):(\d+):(\d+)/)
+  return {name, filename, row, col}
 }
 
-exports.deq = deq
-function deq (a, b) {
-  test(deepEqual, {0: a, 1: b, $: true})
+function getError ({error}) {return error}
+
+exports.format = format
+function format (contexts) {
+  return '\n' + contexts.map(getError).filter(Boolean).join('\n\n') + '\n\n'
 }
 
-exports.ndeq = ndeq
-function ndeq (a, b) {
-  test(deepEqual, {0: a, 1: b, $: false})
+exports.formatMeta = formatMeta
+function formatMeta ({filename, row, col}) {
+  return `${blue(filename)}, row ${blue(row)}, column ${blue(col)}`
 }
 
-exports.throws = throws
-function throws (fun) {
-  let error
-  let value
-  const args = slice(arguments, 1)
-  try {value = fun.apply(null, args)} catch (err) {error = err}
-  if (!error) {
-    throw Error(`Function:\n  ${blue(inspect(fun))}\n` +
-                              `Arguments:\n  ${blue(inspect(args))}\n` +
-                              `Expected to ${red('throw')}\n` +
-                              `Got:\n  ${blue(inspect(value))}`)
-  }
-}
+const BLUE = '\x1b[34m'
+const RED = '\x1b[31m'
+const RESET = '\x1b[39m'
 
-const codes = {
-  blue: '\x1b[34m',
-  red: '\x1b[31m',
-  inverse: '\x1b[7m',
-  reset: '\x1b[0m'
-}
-
-function toList (object) {
-  return [].slice.call(Object.assign({}, object, {length: len(object)}))
-}
-
-function len (object) {
-  return Math.max.apply(Math, indices(object)) + 1
-}
-
-function indices (object) {
-  return Object.keys(object).map(Number).filter(x => !isNaN(x))
-}
-
+exports.blue = blue
 function blue (msg) {
-  return `${codes.blue}${msg}${codes.reset}`
+  return `${BLUE}${msg}${RESET}`
 }
 
+exports.red = red
 function red (msg) {
-  return `${codes.red}${msg}${codes.reset}`
+  return `${RED}${msg}${RESET}`
 }
 
-function inspect (value) {
-  return require('util').inspect(value, {depth: null})
-}
-
-function slice (list, start) {
-  return [].slice.call(list, start)
+exports.show = show
+function show (value) {
+  return inspect(value, {depth: null})
 }
