@@ -171,8 +171,8 @@ tests.push(...[
     // Create missing path
     expectEq(putIn, [{},        ['one'], 1],           {one: 1}),
     expectEq(putIn, [{},        ['one', 'two'], 2],    {one: {two: 2}}),
-    expectEq(putIn, [{},        ['one', 'two'], null], {one: {}}),
-    expectEq(putIn, [{one: []}, ['one', 'two'], null], {one: {}}),
+    expectEq(putIn, [{},        ['one', 'two'], null], {}),
+    expectEq(putIn, [{one: []}, ['one', 'two'], null], {one: []}),
 
     // Drop nil props
     expectEq(putIn, [{one: {two: 2}, three: 3}, ['one'],        null], {three: 3}),
