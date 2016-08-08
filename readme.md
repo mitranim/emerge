@@ -84,13 +84,14 @@ newTree.two.three === 'three'  // true
 
 ### `putIn(prev, path, value)`
 
-Creates a new immutable version of the given value, patched with the given value
-at the given path. The path must be an array of strings or symbols. Preserves as
-many original references as possible. The original is unaffected.
+Creates a new immutable version of the given value, replaced with the given
+value at the given path. The path must be an array of strings or symbols.
+Preserves as many original references as possible, even inside the branch being
+replaced. The original is unaffected.
 
-Ignores/removes nodes that receive nil values (`null` or `undefined`).
+Ignores/removes properties that receive nil values (`null` or `undefined`).
 
-Returns the original reference if the result would be deep-equal.
+Returns the original reference if the result has the same value.
 
 ```javascript
 const {putIn} = require('emerge')
@@ -120,9 +121,9 @@ structure starting at the given path. The path must be an array of strings or
 symbols. Preserves as many original references as possible. The original is
 unaffected.
 
-Ignores/removes nodes that receive nil values (`null` or `undefined`).
+Ignores/removes properties that receive nil values (`null` or `undefined`).
 
-Returns the original reference if the result would be deep-equal.
+Returns the original reference if the result has the same value.
 
 This is useful for updating multiple branches in one operation and preserving
 other data.
@@ -172,8 +173,8 @@ equal(prev, next)  // true
 
 ### `get(value, key)`
 
-Reads property `key` on `value`. Unlike dot or bracket notation, this is safe to
-use on `null` or `undefined` values.
+Reads property `key` on `value`. Unlike dot or bracket notation, safe to use on
+`null` or `undefined` values.
 
 ```js
 get(null, 'one')
@@ -233,8 +234,8 @@ The rest are considered references:
 * Non-plain objects (`new class {}`, `Object.create({})`)
 
 Non-data references are considered outside the scope of Emerge, and treated
-atomically. Emerge includes and replaces them wholesale. This let you use Emerge
-for trees of any kind, even non-data.
+atomically. Emerge includes and replaces them wholesale. This lets you use
+Emerge for trees of any kind, even non-data.
 
 ## Compatibility
 
