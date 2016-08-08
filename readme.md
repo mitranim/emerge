@@ -11,7 +11,7 @@ these concepts. Emerge helps you to bolt this on top of the language.
 
 "Persistent" means that new versions share as much structure as possible with
 old versions. This is known as _structural sharing_. It conserves memory and
-allows to use identity ([`is`](#is-one-other)) as a fast substitute for value
+allows to use identity ([`is`](#isone-other)) as a fast substitute for value
 equality ([`equal`](#equalone-other)) on sibling values.
 
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
@@ -31,7 +31,7 @@ Inspired by Rich Hickey's amazing talk
   * [`putAt`](#putatpath-prev-value)
   * [`patchIn`](#patchinprev-path-value)
   * [`patchAt`](#patchatpath-prev-value)
-  * [`is`](#is-one-other)
+  * [`is`](#isone-other)
   * [`equal`](#equalone-other)
   * [`get`](#getvalue-key)
   * [`scan`](#scanvalue-path)
