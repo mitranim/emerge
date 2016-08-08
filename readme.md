@@ -202,7 +202,7 @@ getIn({one: {two: 2}}, ['one', 'two'])
 // 2
 ```
 
-### `getAt(value, path)`
+### `getAt(path, value)`
 
 Like `getIn` but expects the entire `path` as the _first_ argument. Useful in
 function composition contexts when path is known in advance.
