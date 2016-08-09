@@ -111,6 +111,8 @@ tests.push(...[
     expectEq(putIn, [{one: 1}, [], {one: null}],      {}),
     expectEq(putIn, [{one: 1}, [], {one: undefined}], {}),
     expectEq(putIn, [{one: 1}, [], {}],               {}),
+    // Including finite number keys
+    expectEq(putIn, [{10: 'ten'}, [10], null], {}),
 
     // Maintain reference if value is unchanged
     expectIs(putIn, [smallDict, [], {one: 1, two: null}], smallDict),
@@ -177,6 +179,10 @@ tests.push(...[
     // Drop nil props
     expectEq(putIn, [{one: {two: 2}, three: 3}, ['one'],        null], {three: 3}),
     expectEq(putIn, [{one: {two: 2}, three: 3}, ['one', 'two'], null], {one: {}, three: 3}),
+    expectEq(putIn, [{one: {two: {three: 3}}},  ['one', 'two'], null], {one: {}}),
+    // Including finite number keys
+    expectEq(putIn, [{one: {10: 'ten'}},    ['one', 10], null],        {one: {}}),
+    expectEq(putIn, [{one: {two: {10: 3}}}, ['one', 'two', 10], null], {one: {two: {}}}),
 
     // Maintain reference if value is unchanged
     expectIs(putIn, [dict, ['one'], 1],                  dict),
