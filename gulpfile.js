@@ -38,7 +38,7 @@ gulp.task('compile', () => (
 
 // Purely for evaluating minified code size.
 gulp.task('minify', () => (
-  gulp.src(src.dist)
+  gulp.src(src.dist, {ignore: '**/*.min.js'})
     .pipe($.uglify({
       mangle: true,
       compress: {warnings: false, screw_ie8: true},

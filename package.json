@@ -24,19 +24,19 @@
     "url": "https://github.com/Mitranim/emerge.git"
   },
   "devDependencies": {
-    "babel-eslint": "^6.1.2",
-    "babel-plugin-check-es2015-constants": "^6.8.0",
-    "babel-plugin-transform-es2015-block-scoping": "^6.10.1",
-    "babel-plugin-transform-es2015-destructuring": "^6.9.0",
-    "babel-plugin-transform-es2015-template-literals": "^6.8.0",
-    "del": "^2.2.1",
-    "eslint": "^3.2.2",
+    "babel-eslint": "6.1.2",
+    "babel-plugin-check-es2015-constants": "6.8.0",
+    "babel-plugin-transform-es2015-block-scoping": "6.10.1",
+    "babel-plugin-transform-es2015-destructuring": "6.9.0",
+    "babel-plugin-transform-es2015-template-literals": "6.8.0",
+    "del": "2.2.1",
+    "eslint": "3.2.2",
     "gulp": "gulpjs/gulp#4.0",
-    "gulp-babel": "^6.1.2",
-    "gulp-load-plugins": "^1.2.4",
-    "gulp-rename": "^1.2.2",
-    "gulp-uglify": "^2.0.0",
-    "gulp-util": "^3.0.7",
-    "gulp-watch": "^4.3.9"
+    "gulp-babel": "6.1.2",
+    "gulp-load-plugins": "1.2.4",
+    "gulp-rename": "1.2.2",
+    "gulp-uglify": "2.0.0",
+    "gulp-util": "3.0.7",
+    "gulp-watch": "4.3.9"
   }
 }
