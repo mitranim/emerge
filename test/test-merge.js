@@ -5,215 +5,188 @@
 /**
  * TODO
  *   port remaining tests from './test-old'
- *   remove putRoot and patchRoot tests
  */
 
 const {expectIs, expectEq, testBy} = require('./utils-defs')
-const {putRoot, patchRoot, putIn, patchIn} = require('../lib/emerge')
+const {put, patch, putIn, patchIn} = require('../lib/emerge')
 
 const tests = module.exports = []
 
-/**
- * putRoot
- */
-
-{
+put: {
   const list = [{one: 1}, 2, 3]
   const dict = {one: 1, list}
 
   tests.push(...[
-    expectIs(putRoot, [],                                undefined),
-    expectIs(putRoot, [1, NaN],                          NaN),
-    expectIs(putRoot, [list, list],                      list),
-    expectIs(putRoot, [list, [{one: 1}, 2, 3]],          list),
-    expectIs(putRoot, [dict, list],                      list),
-    expectIs(putRoot, [dict, {one: 1, list}],            dict),
-    expectIs(putRoot, [dict, {one: 1, list, two: null}], dict),
-    expectEq(putRoot, [dict, {one: 1, two: 2}],          {one: 1, two: 2}),
-    expectEq(putRoot, [{one: null}, {}],                 {}),
-    expectEq(putRoot, [{one: null}, {one: undefined}],   {}),
-    testBy(putRoot,   [dict, {list}],                    x => x.list === list),
+    expectIs(put, [],                                undefined),
+    expectIs(put, [1, NaN],                          NaN),
+    expectIs(put, [list, list],                      list),
+    expectIs(put, [list, [{one: 1}, 2, 3]],          list),
+    expectIs(put, [dict, list],                      list),
+    expectIs(put, [dict, {one: 1, list}],            dict),
+    expectIs(put, [dict, {one: 1, list, two: null}], dict),
+    expectEq(put, [dict, {one: 1, two: 2}],          {one: 1, two: 2}),
+    expectEq(put, [{one: null}, {}],                 {}),
+    expectEq(put, [{one: null}, {one: undefined}],   {}),
+    testBy(put,   [dict, {list}],                    x => x.list === list),
   ])
 }
 
-/**
- * patchRoot
- */
-
-{
+patch: {
   const list = [{one: 1}, 2, 3]
   const dict = {one: 1, list}
 
   tests.push(...[
-    expectIs(patchRoot, [],                                undefined),
-    expectIs(patchRoot, [1, NaN],                          NaN),
-    expectIs(patchRoot, [list, list],                      list),
-    expectIs(patchRoot, [list, [{one: 1}, 2, 3]],          list),
-    expectIs(patchRoot, [dict, list],                      list),
-    expectIs(patchRoot, [dict, {one: 1, list}],            dict),
-    expectIs(patchRoot, [dict, {one: 1, list, two: null}], dict),
-    expectIs(patchRoot, [dict, {list}],                    dict),
-    expectEq(patchRoot, [dict, {one: 1, two: 2}],          {one: 1, list, two: 2}),
-    expectEq(patchRoot, [{one: null}, {}],                 {}),
-    expectEq(patchRoot, [{one: null}, {two: 2}],           {two: 2}),
+    expectIs(patch, [],                                undefined),
+    expectIs(patch, [1, NaN],                          NaN),
+    expectIs(patch, [list, list],                      list),
+    expectIs(patch, [list, [{one: 1}, 2, 3]],          list),
+    expectIs(patch, [dict, list],                      list),
+    expectIs(patch, [dict, {one: 1, list}],            dict),
+    expectIs(patch, [dict, {one: 1, list, two: null}], dict),
+    expectIs(patch, [dict, {list}],                    dict),
+    expectEq(patch, [dict, {one: 1, two: 2}],          {one: 1, list, two: 2}),
+    expectEq(patch, [{one: null}, {}],                 {}),
+    expectEq(patch, [{one: null}, {two: 2}],           {two: 2}),
   ])
 }
 
-/**
- * putIn
- */
+putIn: {
+  root: {
+    primitives: {
+      tests.push(...[
+        expectIs(putIn, [1,     [],  2],    2),
+        expectIs(putIn, ['one', [], 'two'], 'two')
+      ])
+    }
 
-/* Root-level */
+    lists: {
+      const emptyList = []
+      const emptyDict = {}
+      const smallDict = {one: 1}
+      const smallList = [smallDict, 2, 3]
 
-// Primitives
+      tests.push(...[
+        // Differentiate between empty list and dict
+        expectIs(putIn, [{}, [], emptyList], emptyList),
+        expectIs(putIn, [[], [], emptyDict], emptyDict),
 
-tests.push(...[
-  expectIs(putIn, [1,     [],  2],    2),
-  expectIs(putIn, ['one', [], 'two'], 'two')
-])
+        // Maintain reference if value is unchanged
+        expectIs(putIn, [smallList, [], [{one: 1}, 2, 3]], smallList),
 
-// Lists
+        // Maintain element references whose values are unchanged
+        testBy(putIn, [smallList, [], [{one: 1}, 2]], x => x[0] === smallDict)
+      ])
+    }
 
-{
-  const emptyList = []
-  const emptyDict = {}
-  const smallDict = {one: 1}
-  const smallList = [smallDict, 2, 3]
+    dicts: {
+      const emptyDict = {}
+      const smallDict = {one: 1}
+      const list      = [smallDict, 2, 3]
+      const meanDict  = {one: 1, list}
 
-  tests.push(...[
-    // Differentiate between empty list and dict
-    expectIs(putIn, [{}, [], emptyList], emptyList),
-    expectIs(putIn, [[], [], emptyDict], emptyDict),
+      tests.push(...[
+        expectIs(putIn, [null,     [], emptyDict], emptyDict),
+        expectIs(putIn, [null,     [], meanDict],  meanDict),
+        expectIs(putIn, [meanDict, [], meanDict],  meanDict),
+        expectIs(putIn, [meanDict, [], null],      null),
 
-    // Maintain reference if value is unchanged
-    expectIs(putIn, [smallList, [], [{one: 1}, 2, 3]], smallList),
+        // Drop nil props
+        expectEq(putIn, [{one: 1}, [], {one: null}],      {}),
+        expectEq(putIn, [{one: 1}, [], {one: undefined}], {}),
+        expectEq(putIn, [{one: 1}, [], {}],               {}),
+        // Including finite number keys
+        expectEq(putIn, [{10: 'ten'}, [10], null], {}),
 
-    // Maintain element references whose values are unchanged
-    testBy(putIn, [smallList, [], [{one: 1}, 2]], x => x[0] === smallDict)
-  ])
+        // Maintain reference if value is unchanged
+        expectIs(putIn, [smallDict, [], {one: 1, two: null}], smallDict),
+        expectIs(putIn, [meanDict, [], {one: 1, two: null, list: [{one: 1}, 2, 3]}], meanDict),
+
+        // Maintain prop references whose values are unchanged
+        expectEq(putIn, [meanDict, [], {one: null, list: [{one: 1}, 2, 3]}], {list}),
+        testBy(putIn, [meanDict, [], {one: null, list: [{one: 1}, 2, 3]}], x => x.list === list)
+      ])
+    }
+  }
+
+  nested: {
+    primitives: {
+      tests.push(...[
+        expectEq(putIn, [null, ['one'], 1],        {one: 1}),
+        expectEq(putIn, [1,    ['one'], 1],        {one: 1}),
+        expectEq(putIn, [null, ['one', 'two'], 2], {one: {two: 2}}),
+        expectEq(putIn, [1,    ['one', 'two'], 2], {one: {two: 2}}),
+      ])
+    }
+
+    lists: {
+      const list = [{one: 'one'}, 'two', 'three']
+
+      tests.push(...[
+        // Insert and append
+        expectEq(putIn, [['one', 'two'], [0], 'three'], ['three', 'two']),
+        expectEq(putIn, [['one', 'two'], [1], 'three'], ['one', 'three']),
+        expectEq(putIn, [[],             [0], 'one'],   ['one']),
+        expectEq(putIn, [['one'],        [1], 'two'],   ['one', 'two']),
+        expectEq(putIn, [['one', 'two'], [2], 'three'], ['one', 'two', 'three']),
+
+        // Maintain reference if value is unchanged
+        expectIs(putIn, [list, [0], {one: 'one', two: null}], list),
+
+        // Drop list when index out of bounds
+        expectEq(putIn, [['one'], [2],  'two'], {2: 'two'}),
+        expectEq(putIn, [['one'], [-1], 'two'], {'-1': 'two'}),
+
+        // Drop list when key demands dict
+        expectEq(putIn, [['one', 'two'], ['0'], 'one'], {0: 'one'}),
+        // (comparison with integer index)
+        expectEq(putIn, [['one', 'two'], [0],   'one'], ['one', 'two']),
+      ])
+    }
+
+    dicts: {
+      const dict = {one: 1, list: [{one: 1}, 'two', 'three']}
+
+      tests.push(...[
+        // Create missing path
+        expectEq(putIn, [{},        ['one'], 1],           {one: 1}),
+        expectEq(putIn, [{},        ['one', 'two'], 2],    {one: {two: 2}}),
+        expectEq(putIn, [{},        ['one', 'two'], null], {}),
+        expectEq(putIn, [{one: []}, ['one', 'two'], null], {one: []}),
+
+        // Drop nil props
+        expectEq(putIn, [{one: {two: 2}, three: 3}, ['one'],        null], {three: 3}),
+        expectEq(putIn, [{one: {two: 2}, three: 3}, ['one', 'two'], null], {one: {}, three: 3}),
+        expectEq(putIn, [{one: {two: {three: 3}}},  ['one', 'two'], null], {one: {}}),
+        // Including finite number keys
+        expectEq(putIn, [{one: {10: 'ten'}},    ['one', 10], null],        {one: {}}),
+        expectEq(putIn, [{one: {two: {10: 3}}}, ['one', 'two', 10], null], {one: {two: {}}}),
+
+        // Maintain reference if value is unchanged
+        expectIs(putIn, [dict, ['one'], 1],                  dict),
+        expectIs(putIn, [dict, ['two'], null],               dict),
+        expectIs(putIn, [dict, ['list', 0, {one: 1}], null], dict),
+        expectIs(putIn, [dict, ['list', 1], 'two'],          dict),
+      ])
+    }
+
+    mixed: {
+      tests.push(...[
+        expectEq(
+          putIn,
+          [[{one: 1}, 'two'], [0, 'one'], 'one!'],
+          [{one: 'one!'}, 'two']
+        ),
+        expectEq(
+          putIn,
+          [{list: ['one', 'two'], three: 3}, ['list', 0], 'one!'],
+          {list: ['one!', 'two'], three: 3}
+        ),
+      ])
+    }
+  }
 }
 
-// Dicts
-
-{
-  const emptyDict = {}
-  const smallDict = {one: 1}
-  const list      = [smallDict, 2, 3]
-  const meanDict  = {one: 1, list}
-
-  tests.push(...[
-    expectIs(putIn, [null,     [], emptyDict], emptyDict),
-    expectIs(putIn, [null,     [], meanDict],  meanDict),
-    expectIs(putIn, [meanDict, [], meanDict],  meanDict),
-    expectIs(putIn, [meanDict, [], null],      null),
-
-    // Drop nil props
-    expectEq(putIn, [{one: 1}, [], {one: null}],      {}),
-    expectEq(putIn, [{one: 1}, [], {one: undefined}], {}),
-    expectEq(putIn, [{one: 1}, [], {}],               {}),
-    // Including finite number keys
-    expectEq(putIn, [{10: 'ten'}, [10], null], {}),
-
-    // Maintain reference if value is unchanged
-    expectIs(putIn, [smallDict, [], {one: 1, two: null}], smallDict),
-    expectIs(putIn, [meanDict, [], {one: 1, two: null, list: [{one: 1}, 2, 3]}], meanDict),
-
-    // Maintain prop references whose values are unchanged
-    expectEq(putIn, [meanDict, [], {one: null, list: [{one: 1}, 2, 3]}], {list}),
-    testBy(putIn, [meanDict, [], {one: null, list: [{one: 1}, 2, 3]}], x => x.list === list)
-  ])
-}
-
-/* Nested */
-
-// Primitives
-
-{
-  tests.push(...[
-    expectEq(putIn, [null, ['one'], 1],        {one: 1}),
-    expectEq(putIn, [1,    ['one'], 1],        {one: 1}),
-    expectEq(putIn, [null, ['one', 'two'], 2], {one: {two: 2}}),
-    expectEq(putIn, [1,    ['one', 'two'], 2], {one: {two: 2}}),
-  ])
-}
-
-// Lists
-
-{
-  const list = [{one: 'one'}, 'two', 'three']
-
-  tests.push(...[
-    // Insert and append
-    expectEq(putIn, [['one', 'two'], [0], 'three'], ['three', 'two']),
-    expectEq(putIn, [['one', 'two'], [1], 'three'], ['one', 'three']),
-    expectEq(putIn, [[],             [0], 'one'],   ['one']),
-    expectEq(putIn, [['one'],        [1], 'two'],   ['one', 'two']),
-    expectEq(putIn, [['one', 'two'], [2], 'three'], ['one', 'two', 'three']),
-
-    // Maintain reference if value is unchanged
-    expectIs(putIn, [list, [0], {one: 'one', two: null}], list),
-
-    // Drop list when index out of bounds
-    expectEq(putIn, [['one'], [2],  'two'], {2: 'two'}),
-    expectEq(putIn, [['one'], [-1], 'two'], {'-1': 'two'}),
-
-    // Drop list when key demands dict
-    expectEq(putIn, [['one', 'two'], ['0'], 'one'], {0: 'one'}),
-    // (comparison with integer index)
-    expectEq(putIn, [['one', 'two'], [0],   'one'], ['one', 'two']),
-  ])
-}
-
-// Dicts
-
-{
-  const dict = {one: 1, list: [{one: 1}, 'two', 'three']}
-
-  tests.push(...[
-    // Create missing path
-    expectEq(putIn, [{},        ['one'], 1],           {one: 1}),
-    expectEq(putIn, [{},        ['one', 'two'], 2],    {one: {two: 2}}),
-    expectEq(putIn, [{},        ['one', 'two'], null], {}),
-    expectEq(putIn, [{one: []}, ['one', 'two'], null], {one: []}),
-
-    // Drop nil props
-    expectEq(putIn, [{one: {two: 2}, three: 3}, ['one'],        null], {three: 3}),
-    expectEq(putIn, [{one: {two: 2}, three: 3}, ['one', 'two'], null], {one: {}, three: 3}),
-    expectEq(putIn, [{one: {two: {three: 3}}},  ['one', 'two'], null], {one: {}}),
-    // Including finite number keys
-    expectEq(putIn, [{one: {10: 'ten'}},    ['one', 10], null],        {one: {}}),
-    expectEq(putIn, [{one: {two: {10: 3}}}, ['one', 'two', 10], null], {one: {two: {}}}),
-
-    // Maintain reference if value is unchanged
-    expectIs(putIn, [dict, ['one'], 1],                  dict),
-    expectIs(putIn, [dict, ['two'], null],               dict),
-    expectIs(putIn, [dict, ['list', 0, {one: 1}], null], dict),
-    expectIs(putIn, [dict, ['list', 1], 'two'],          dict),
-  ])
-}
-
-// Mixed
-
-{
-  tests.push(...[
-    expectEq(
-      putIn,
-      [[{one: 1}, 'two'], [0, 'one'], 'one!'],
-      [{one: 'one!'}, 'two']
-    ),
-    expectEq(
-      putIn,
-      [{list: ['one', 'two'], three: 3}, ['list', 0], 'one!'],
-      {list: ['one!', 'two'], three: 3}
-    ),
-  ])
-}
-
-/**
- * patchIn
- */
-
-{
+patchIn: {
   tests.push(...[
     // Merge dicts
     expectEq(patchIn, [{one: 1},        [],               {two: 2}],          {one: 1, two: 2}),

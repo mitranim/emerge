@@ -15,7 +15,7 @@ allows to use identity ([`is`](#isone-other)) as a fast substitute for value
 equality ([`equal`](#equalone-other)) on sibling values.
 
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
-data. Extremely lightweight (2 KB minified).
+data. Extremely lightweight (3 KB minified).
 
 Inspired by Rich Hickey's amazing talk
 <a href="https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md" target="_blank">"Are We There Yet"</a>
@@ -27,12 +27,17 @@ Inspired by Rich Hickey's amazing talk
 * [Why](#why)
 * [Installation](#installation)
 * [API](#api)
+  * [`put`](#putprev-next)
   * [`putIn`](#putinprev-path-value)
   * [`putAt`](#putatpath-prev-value)
+  * [`patch`](#patchprev-next)
   * [`patchIn`](#patchinprev-path-value)
   * [`patchAt`](#patchatpath-prev-value)
+  * [`merge`](#mergedicts)
+  * [`mergeBy`](#mergebyfun-prev-next)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
+  * [`equalBy`](#equalbytest-one-other)
   * [`get`](#getvalue-key)
   * [`scan`](#scanvalue-path)
   * [`getIn`](#getinvalue-path)
@@ -82,6 +87,10 @@ newTree.two.three === 'three'  // true
 
 ## API
 
+### `put(prev, next)`
+
+Same as `putIn(prev, [], next)` (see below).
+
 ### `putIn(prev, path, value)`
 
 Creates a new immutable version of the given value, replaced with the given
@@ -89,9 +98,10 @@ value at the given path. The path must be an array of strings or symbols.
 Preserves as many original references as possible, even inside the branch being
 replaced. The original is unaffected.
 
-Ignores/removes properties that receive nil values (`null` or `undefined`).
+Removes properties that receive `null` or `undefined`.
+Example: `putIn({a: 10, b: 20}, [], {b: null}) -> {a: 10}`.
 
-Returns the original reference if the result has the same value.
+Returns the original reference if the result is equivalent.
 
 ```javascript
 const {putIn} = require('emerge')
@@ -114,6 +124,10 @@ newTree.four === oldTree.four  // true
 Same as `putIn` but accepts `path` as the first argument. Useful in function
 composition contexts when path is known in advance.
 
+### `patch(prev, next)`
+
+Same as `patchIn(prev, [], next)` (see below).
+
 ### `patchIn(prev, path, value)`
 
 Creates a new immutable version of the given value, deep-patched by the given
@@ -121,9 +135,10 @@ structure starting at the given path. The path must be an array of strings or
 symbols. Preserves as many original references as possible. The original is
 unaffected.
 
-Ignores/removes properties that receive nil values (`null` or `undefined`).
+Removes properties that receive `null` or `undefined`.
+Example: `putIn({a: 10, b: 20}, [], {b: null}) -> {a: 10}`.
 
-Returns the original reference if the result has the same value.
+Returns the original reference if the result is equivalent.
 
 This is useful for updating multiple branches in one operation and preserving
 other data.
@@ -150,6 +165,40 @@ newTree.five === oldTree.five              // true
 Same as `patchIn` but accepts `path` as the first argument. Useful in function
 composition contexts when path is known in advance.
 
+### `merge(...dicts)`
+
+Merges all arguments using `patch`. Ignores non-dict arguments (primitives,
+lists, etc). Always returns a dict. May return the original reference to the
+first argument if the result is equivalent.
+
+```js
+merge()
+// {}
+
+merge({one: 1, two: {three: 3}}, {two: {four: 4}})
+// {one: 1, two: {three: 3, four: 4}}
+```
+
+### `mergeBy(fun, prev, next)`
+
+where `fun = ƒ(prevValue, nextValue, key)`
+
+Customisable version of `merge`: uses `fun` to merge properties of lists and
+dicts. Potentially deeply recursive if `fun` also invokes `mergeBy`.
+
+Like `merge`, this ignores non-dict arguments and always returns a dict. Returns
+the original reference if the result is equivalent.
+
+```js
+// Merges equivalent values and omits the rest.
+mergeBy(onlyEqual, {one: [1], two: 2}, {one: [1], two: 'two'})
+// {one: [1]}
+
+function onlyEqual (one, other) {
+  return equal(one, other) ? one : null
+}
+```
+
 ### `is(one, other)`
 
 Same as ES2015 `Object.is`. Equivalent to `===` but also considers `NaN` equal
@@ -169,6 +218,27 @@ const prev = {one: NaN, two: [2]}
 const next = {one: NaN, two: [2]}
 
 equal(prev, next)  // true
+```
+
+### `equalBy(test, one, other)`
+
+where `test = ƒ(oneValue, otherValue)`
+
+Customisable equality. Uses `test` to compare properties of lists and dicts, and
+`is` to compare other values. Potentially deeply recursive if `test` also
+invokes `equalBy`.
+
+```js
+// Shallow equality
+equalBy(is, {one: 1}, {one: 1})
+// true
+equalBy(is, {list: []}, {list: []})
+// false
+
+// Deep equality: `equal` is just a special case of `equalBy`
+function equal (one, other) {
+  return equalBy(equal, one, other)
+}
 ```
 
 ### `get(value, key)`
