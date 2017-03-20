@@ -47,7 +47,7 @@ Inspired by Rich Hickey's amazing talk
 
 ## Why
 
-Why not just use ImmutableJS or another existing library?
+Why not ImmutableJS or another alternative?
 
 1. Plain data. Emerge uses plain dicts and lists.
 
@@ -55,7 +55,7 @@ Why not just use ImmutableJS or another existing library?
   * Easy to explore data in REPL.
   * Serialise into JSON and back without losing information.
 
-2. Size. ImmutableJS is 140+ KB minified, unacceptable. Emerge is just 2 KB
+2. Size. ImmutableJS is 140+ KB minified, unacceptable. Emerge is just 3 KB
 minified.
 
 ## Installation
