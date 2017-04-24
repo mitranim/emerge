@@ -17,9 +17,9 @@ equality ([`equal`](#equalone-other)) on sibling values.
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
 data. Extremely lightweight (3 KB minified).
 
-Inspired by Rich Hickey's amazing talk
-<a href="https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md" target="_blank">"Are We There Yet"</a>
-(transcript).
+Inspired by
+[Clojure's philosophy](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md)
+and [`clojure.core`](https://clojuredocs.org/core-library).
 
 ## TOC
 
