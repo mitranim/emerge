@@ -6,75 +6,81 @@ const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
 const {exec} = require('child_process')
+const chalk = require('chalk')
 
 /* ******************************** Globals **********************************/
 
 const src = {
   lib: 'lib/**/*.js',
-  dist: 'dist/**/*.js'
+  dist: 'dist/**/*.js',
+  test: 'test/**/*.js',
 }
 
-const out = 'dist'
-
-const test = 'test/**/*.js'
+const out = {
+  lib: 'dist',
+}
 
 const testCommand = require('./package').scripts.test
 
-function noop () {}
-
-let testProc
+let testProc = null
 
 /* ********************************* Tasks ***********************************/
 
 gulp.task('clear', () => (
-  del(out).catch(noop)
+  del(out.lib).catch(console.error.bind(console))
 ))
 
 gulp.task('compile', () => (
   gulp.src(src.lib)
     .pipe($.babel())
-    .pipe(gulp.dest(out))
+    .pipe(gulp.dest(out.lib))
 ))
 
-// Purely for evaluating minified code size.
+// For evaluating minified size
 gulp.task('minify', () => (
   gulp.src(src.dist, {ignore: '**/*.min.js'})
     .pipe($.uglify({
       mangle: true,
       compress: {warnings: false, screw_ie8: true},
-      wrap: true
+      wrap: true,
     }))
     .pipe($.rename(path => {
       path.extname = '.min.js'
     }))
-    .pipe(gulp.dest(out))
+    .pipe(gulp.dest(out.lib))
 ))
 
 gulp.task('test', done => {
-  if (testProc) {
-    // Just started, let it finish
-    if (testProc.exitCode == null) return
-    testProc.kill()
-  }
+  // Just started, let it finish
+  if (testProc && testProc.exitCode == null) return
 
-  $.util.log('Test started')
+  if (testProc) testProc.kill()
 
-  testProc = exec(testCommand, (err, stdout, stderr) => {
-    process.stdout.write(stdout)
-    process.stderr.write(stderr)
+  testProc = exec(
+    testCommand,
+    {env: {FORCE_COLOR: true}},
+    (err, stdout, stderr) => {
+      process.stdout.write(stdout)
 
-    if (err) {
-      throw new $.util.PluginError('lib:test', 'Test failed', {showProperties: false})
-    } else {
-      $.util.log('Test finished')
-      done()
+      if (err) {
+        done({
+          showStack: false,
+          toString () {
+            return `${chalk.red('Error')} in plugin '${chalk.cyan('lib:test')}':\n${stderr}`
+          },
+        })
+      }
+      else {
+        process.stderr.write(stderr)
+        done(null)
+      }
     }
-  })
+  )
 })
 
 gulp.task('watch', () => {
   $.watch(src.lib, gulp.parallel('test', 'build'))
-  $.watch(test, gulp.series('test'))
+  $.watch([src.test, './test-utils.js'], gulp.series('test'))
 })
 
 gulp.task('build', gulp.series('clear', 'compile', 'minify'))

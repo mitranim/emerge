@@ -1,47 +1,58 @@
 'use strict'
 
 const {create} = Object
-const {expectIs} = require('./utils-defs')
+const {call, expect, to} = require('../test-utils')
 const {is, equal, equalBy} = require('../lib/emerge')
 
-module.exports = [
-  /**
-   * is
-   */
+/**
+ * is
+ */
 
-  expectIs(is, [],                true),
-  expectIs(is, [null, undefined], false),
-  expectIs(is, [NaN, NaN],        true),
-  expectIs(is, [1, '1'],          false),
-  expectIs(is, [{}, {}],          false),
+expect(call(is),                  to.eq(true))
+expect(call(is, null, undefined), to.eq(false))
+expect(call(is, 1,    1),         to.eq(true))
+expect(call(is, NaN,  NaN),       to.eq(true))
+expect(call(is, '1',  1),         to.eq(false))
+expect(call(is, {},   {}),        to.eq(false))
 
-  /**
-   * equal
-   */
+/**
+ * equal
+ */
 
-  expectIs(equal, [[], []], true),
+expect(call(equal, [],           []),           to.eq(true))
+expect(call(equal, {},           {}),           to.eq(true))
+expect(call(equal, create(null), create(null)), to.eq(true))
 
-  expectIs(equal, [{}, {}], true),
+expect(
+  call(equal, create({}), create({})),
+  ({ok, returned}) => ({
+    ok: ok && returned === false,
+    comment: `non-plain objects shouldn't compare equal`,
+  })
+)
 
-  expectIs(equal, [create(null), create(null)], true),
-
-  expectIs(equal, [create({}), create({})], false),
-
-  expectIs(equal, [
+expect(
+  call(
+    equal,
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'},
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'}
-  ], true),
+  ),
+  to.eq(true)
+)
 
-  expectIs(equal, [
+expect(
+  call(
+    equal,
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'},
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five', six: 6}
-  ], false),
+  ),
+  to.eq(false)
+)
 
-  /**
-   * equalBy
-   */
+/**
+ * equalBy
+ */
 
-  expectIs(equalBy, [is,    [1],     [1]],     true),
-  expectIs(equalBy, [is,    [1, {}], [1, {}]], false),
-  expectIs(equalBy, [equal, [1, {}], [1, {}]], true)
-]
+expect(call(equalBy, is,    [1],     [1]),     to.eq(true))
+expect(call(equalBy, is,    [1, {}], [1, {}]), to.eq(false))
+expect(call(equalBy, equal, [1, {}], [1, {}]), to.eq(true))

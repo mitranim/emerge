@@ -28,13 +28,15 @@ and [`clojure.core`](https://clojuredocs.org/core-library).
 * [Installation](#installation)
 * [API](#api)
   * [`put`](#putprev-next)
-  * [`putIn`](#putinprev-path-value)
-  * [`putAt`](#putatpath-prev-value)
   * [`patch`](#patchprev-next)
+  * [`merge`](#mergeprev-next)
+  * [`putIn`](#putinprev-path-value)
   * [`patchIn`](#patchinprev-path-value)
-  * [`patchAt`](#patchatpath-prev-value)
-  * [`merge`](#mergedicts)
-  * [`mergeBy`](#mergebyfun-prev-next)
+  * [`mergeIn`](#mergeinprev-path-value)
+  * [`putBy`](#putbyfun-prev-next)
+  * [`patchBy`](#patchbyfun-prev-next)
+  * [`putInBy`](#putinbyprev-path-fun)
+  * [`mergeDicts`](#mergedictsvalues)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
   * [`equalBy`](#equalbytest-one-other)
@@ -61,142 +63,221 @@ minified.
 ## Installation
 
 ```sh
-npm i --save emerge
+npm install --save --save-exact emerge
 # or
-npm i --save-dev emerge
+npm i -SE emerge
 ```
 
 Example usage:
 
 ```javascript
-const {patchAt} = require('emerge')
+const {patch} = require('emerge')
 
-const oldTree = {one: [1], two: {three: 3}}
+const prev = {one: [1], two: {three: 3}}
 
-const part = {two: {three: 'three'}}
+// Patched version, sharing as much structure as possible with both inputs
+const next = patch(prev, {two: {three: 'three'}})
+// {one: [1], two: {three: 'three'}}
 
-// Result of deep merge, immutable.
-const newTree = patchAt([], oldTree, part)
-
-// Unchanged values retain their references.
-newTree.one === oldTree.one  // true
-
-// New parts are merged-in.
-newTree.two.three === 'three'  // true
+// Unchanged values retain their references
+next.one === prev.one  // true
 ```
 
 ## API
 
 ### `put(prev, next)`
 
-Same as `putIn(prev, [], next)` (see below).
+Minor merge utility with focus on structural sharing.
+
+Creates a new immutable version of `next` that reuses as much structure as
+possible from `prev`. In the newly created value, all references that have the
+same property path in `prev` and `next` and are structurally
+[`equal`](#equalone-other), are reused from `prev`. If `prev` and `next` are
+equal, `prev` is returned as-is.
+
+Following the [merge semantics](#merge-semantics), drops nil properties from the
+newly created value.
+
+Structural sharing enabled by [`put`](#putprev-next) is useful for improving the
+performance of change detection algorithms in reactive systems. It's used
+internally by all other merge utilities in Emerge.
+
+```js
+const {put} = require('emerge')
+
+// Works on primitives, uninteresting
+put(1, 2)  // 2
+
+const prev = {one: [1]}
+
+const next = {one: [1]}
+
+prev !== next             // true
+
+put(prev, next) === prev  // true
+
+// also deletes nil properties
+put(prev, {one: null})    // {}
+```
+
+### `patch(prev, next)`
+
+Merge utility with structural sharing.
+
+Similar to [`clojure.core/merge`](https://clojuredocs.org/clojure.core/merge),
+minus the rest parameters.
+
+Similar to [`put`](#putprev-next), with just one difference: if `prev` and
+`next` are both dicts, it combines their properties. Reuses as many references
+as possible from `prev`.
+
+```js
+const {patch} = require('emerge')
+
+// Works on primitives, uninteresting
+patch(1, 2)  // 2
+
+const prev = {one: [1]}
+
+const next = {two: [2]}
+
+const result = patch(prev, next)
+// {one: [1], two: [2]}
+
+// Preserves unaffected references
+result.one === prev.one  // true
+result.two === next.two  // true
+
+// Merge is only one level deep
+patch({one: {two: 2}}, {one: {three: 3}})
+// {one: {three: 3}}
+```
+
+### `merge(prev, next)`
+
+Deep patch utility.
+
+Similar to [`patch`](#patchprev-next), but merges dicts at any depth. Reuses as
+many references as possible from `prev`.
+
+```js
+const {merge} = require('emerge')
+
+const prev = {nested: {dict: {one: 1}}}
+
+const next = {nested: {dict: {two: 2}}}
+
+const result = merge(prev, next)
+// {nested: {dict: {one: 1, two: 2}}}
+```
 
 ### `putIn(prev, path, value)`
 
-Creates a new immutable version of the given value, replaced with the given
-value at the given path. The path must be an array of strings or symbols.
-Preserves as many original references as possible, even inside the branch being
-replaced. The original is unaffected.
+Similar to [`clojure.core/assoc-in`](https://clojuredocs.org/clojure.core/assoc-in).
 
-Removes properties that receive `null` or `undefined`.
-Example: `putIn({a: 10, b: 20}, [], {b: null}) -> {a: 10}`.
-
-Returns the original reference if the result is equivalent.
+Creates a new immutable version of `prev`, where `value` is
+[`put`](#putprev-next) into the location at `path`. The path must be a list of
+primitive values. Reuses as many references as possible from `prev`. Returns
+`prev` is the result is equal.
 
 ```javascript
 const {putIn} = require('emerge')
 
-const oldTree = {one: {two: 2, three: 3}, four: [4]}
+const prev = {one: {two: 2, three: 3}, four: [4]}
 
 const part = {two: 'two'}
 
-const newTree = putIn(oldTree, ['one'], part)
+const result = putIn(prev, ['one'], part)
+// {one: {two: 'two'}, four: [4]}
 
-// Result:
-//   {one: {two: 'two'}, four: [4]}
+result.one.two === part.two   // true
+result.four === prev.four     // true
 
-newTree.one.two === part.two   // true
-newTree.four === oldTree.four  // true
+// List indices also work
+putIn({list: ['one']}, ['list', 1], 'two')
+// {list: ['one', 'two']}
+
+// Creates missing dicts if needed
+putIn(null, ['one', 'two'], 2)
+// {one: {two: 2}}
 ```
-
-### `putAt(path, prev, value)`
-
-Same as `putIn` but accepts `path` as the first argument. Useful in function
-composition contexts when path is known in advance.
-
-### `patch(prev, next)`
-
-Same as `patchIn(prev, [], next)` (see below).
 
 ### `patchIn(prev, path, value)`
 
-Creates a new immutable version of the given value, deep-patched by the given
-structure starting at the given path. The path must be an array of strings or
-symbols. Preserves as many original references as possible. The original is
-unaffected.
-
-Removes properties that receive `null` or `undefined`.
-Example: `putIn({a: 10, b: 20}, [], {b: null}) -> {a: 10}`.
-
-Returns the original reference if the result is equivalent.
-
-This is useful for updating multiple branches in one operation and preserving
-other data.
+Creates a new immutable version of `prev`, where `value` is patched into the
+location at `path`, using [`patch`](#patchprev-next). See
+[`putIn`](#putinprev-path-value). Reuses as many references as possible from
+`prev`.
 
 ```javascript
 const {patchIn} = require('emerge')
 
-const oldTree = {one: {two: {three: 3, four: 4}}, five: [5]}
-
-const part = {two: {three: 'three'}}
-
-const newTree = patchIn(oldTree, ['one'], part)
-
-// Result:
-//   {one: {two: {three: 'three', four: 4}}, five: [5]}
-
-newTree.one.two.three === next.two.three   // true
-newTree.one.four === oldTree.one.four      // true
-newTree.five === oldTree.five              // true
+patchIn({one: {two: 2}}, ['one'], {three: 3})
+// {one: {two: 2, three: 3}}
 ```
 
-### `patchAt(path, prev, value)`
+### `mergeIn(prev, next, value)`
 
-Same as `patchIn` but accepts `path` as the first argument. Useful in function
-composition contexts when path is known in advance.
+Creates a new immutable version of `prev`, where `value` is deeply patched into
+the location at `path`, using [`merge`](#mergeprev-next). See
+[`putIn`](#putinprev-path-value). Reuses as many references as possible from
+`prev`.
 
-### `merge(...dicts)`
+```javascript
+const {mergeIn} = require('emerge')
 
-Merges all arguments using `patch`. Ignores non-dict arguments (primitives,
-lists, etc). Always returns a dict. May return the original reference to the
-first argument if the result is equivalent.
+mergeIn({nested: {dict: {one: 1}}}, ['nested'], {dict: {two: 2}})
+// {nested: {dict: {one: 1, two: 2}}}
+```
+
+### `putBy(fun, prev, next)`
+
+where `fun: ƒ(prevValue, nextValue, key)`
+
+Customisable patching utility. Uses `fun` to replace list elements and dict
+properties; replaces other values automatically. Not recursive by itself, but
+`fun` may invoke `putBy` to implement a recursive algorithm. Serves as a basis
+for [`put`](#putprev-next).
+
+### `patchBy(fun, prev, next)`
+
+where `fun: ƒ(prevValue, nextValue, key)`
+
+Customisable patching utility. Uses `fun` to replace list elements and dict
+properties; replaces other values automatically. Unlike `putBy`, combines dict
+properties from `prev` and `next`. Not recursive by itself, but `fun` may invoke
+`patchBy` to implement a recursive algorithm. Serves as a basis for
+[`patch`](#patchprev-next) and [`merge `](#mergeprev-next).
+
+### `putInBy(prev, path, fun, ...args)`
+
+where `fun: ƒ(prevValue, ...args)`
+
+Similar to [`clojure.core/update-in`](https://clojuredocs.org/clojure.core/update-in).
+
+Creates a new immutable version of `prev`, calling `fun` to create a value for
+the location at `path` and using [`putIn`](#putinprev-path-value) to update it.
+
+```javascript
+const {putInBy} = require('emerge')
+
+const prev = [{count: 1}]
+
+const result = putInBy(prev, [0, 'count'], x => x + 1)
+// [{count: 2}]
+```
+
+### `mergeDicts(values)`
+
+Takes a list of values and merges them all, using [`merge`](#mergeprev-next) and
+ignoring non-dicts. The result is always a dict.
 
 ```js
-merge()
+mergeDicts()
 // {}
 
-merge({one: 1, two: {three: 3}}, {two: {four: 4}})
+mergeDicts({one: 1, two: {three: 3}}, {two: {four: 4}})
 // {one: 1, two: {three: 3, four: 4}}
-```
-
-### `mergeBy(fun, prev, next)`
-
-where `fun = ƒ(prevValue, nextValue, key)`
-
-Customisable version of `merge`: uses `fun` to merge properties of lists and
-dicts. Potentially deeply recursive if `fun` also invokes `mergeBy`.
-
-Like `merge`, this ignores non-dict arguments and always returns a dict. Returns
-the original reference if the result is equivalent.
-
-```js
-// Merges equivalent values and omits the rest.
-mergeBy(onlyEqual, {one: [1], two: 2}, {one: [1], two: 'two'})
-// {one: [1]}
-
-function onlyEqual (one, other) {
-  return equal(one, other) ? one : null
-}
 ```
 
 ### `is(one, other)`
