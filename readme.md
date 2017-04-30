@@ -100,9 +100,9 @@ equal, `prev` is returned as-is.
 Following the [merge semantics](#merge-semantics), drops nil properties from the
 newly created value.
 
-Structural sharing enabled by [`put`](#putprev-next) is useful for improving the
-performance of change detection algorithms in reactive systems. It's used
-internally by all other merge utilities in Emerge.
+Structural sharing enabled by `put` is useful for improving the performance of
+change detection algorithms in reactive systems. It's used internally by all
+other merge utilities in Emerge.
 
 ```js
 const {put} = require('emerge')
