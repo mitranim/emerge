@@ -35,7 +35,7 @@ and [`clojure.core`](https://clojuredocs.org/core-library).
   * [`mergeIn`](#mergeinprev-path-value)
   * [`putBy`](#putbyfun-prev-next)
   * [`patchBy`](#patchbyfun-prev-next)
-  * [`putInBy`](#putinbyprev-path-fun)
+  * [`putInBy`](#putinbyprev-path-fun-args)
   * [`mergeDicts`](#mergedictsvalues)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
@@ -87,7 +87,9 @@ next.one === prev.one  // true
 
 ### `put(prev, next)`
 
-Minor merge utility with focus on structural sharing.
+Minor merge utility with focus on structural sharing. Not very interesting by
+itself. See [`patch`](#patchprev-next) and [`putIn`](#putinprev-path-value) for
+more practical examples.
 
 Creates a new immutable version of `next` that reuses as much structure as
 possible from `prev`. In the newly created value, all references that have the
@@ -114,6 +116,7 @@ const next = {one: [1]}
 
 prev !== next             // true
 
+// Preserves entire previous reference due to structural equality
 put(prev, next) === prev  // true
 
 // also deletes nil properties
@@ -216,7 +219,7 @@ patchIn({one: {two: 2}}, ['one'], {three: 3})
 // {one: {two: 2, three: 3}}
 ```
 
-### `mergeIn(prev, next, value)`
+### `mergeIn(prev, path, value)`
 
 Creates a new immutable version of `prev`, where `value` is deeply patched into
 the location at `path`, using [`merge`](#mergeprev-next). See
@@ -269,14 +272,16 @@ const result = putInBy(prev, [0, 'count'], x => x + 1)
 
 ### `mergeDicts(values)`
 
-Takes a list of values and merges them all, using [`merge`](#mergeprev-next) and
-ignoring non-dicts. The result is always a dict.
+where `values: [any]`
+
+Takes a list of values and combines them via [`merge`](#mergeprev-next),
+ignoring non-dict arguments. Always produces a dict.
 
 ```js
-mergeDicts()
+mergeDicts([])
 // {}
 
-mergeDicts({one: 1, two: {three: 3}}, {two: {four: 4}})
+mergeDicts([{one: 1, two: {three: 3}}, 'non-dict', {two: {four: 4}}])
 // {one: 1, two: {three: 3, four: 4}}
 ```
 
@@ -303,11 +308,11 @@ equal(prev, next)  // true
 
 ### `equalBy(test, one, other)`
 
-where `test = ƒ(oneValue, otherValue)`
+where `test: ƒ(oneValue, otherValue)`
 
 Customisable equality. Uses `test` to compare properties of lists and dicts, and
-`is` to compare other values. Potentially deeply recursive if `test` also
-invokes `equalBy`.
+`is` to compare other values. Not recursive by itself, but `test` may invoke
+`equalBy` to implement a recursive algorithm.
 
 ```js
 // Shallow equality
