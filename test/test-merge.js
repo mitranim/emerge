@@ -104,9 +104,9 @@ expect(call(putIn, ['one'], [2],  'two'), to.equal({2: 'two'}))
 expect(call(putIn, ['one'], [-1], 'two'), to.equal({'-1': 'two'}))
 
 // Drop entire list when key demands dict
-expect(call(putIn, ['one', 'two'], ['0'], 'one'), to.equal({0: 'one'}))
+expect(call(putIn, ['one', 'two'], ['0'], 'three'), to.equal({0: 'three'}))
 // (comparison with integer index)
-expect(call(putIn, ['one', 'two'], [0],   'one'), to.equal(['one', 'two']))
+expect(call(putIn, ['one', 'two'], [0],   'one'),   to.equal(['one', 'two']))
 
 // Create missing path
 expect(call(putIn, {},        ['one'], 1),           to.equal({one: 1}))

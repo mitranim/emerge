@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.0.30",
+  "version": "0.0.31",
   "main": "dist/emerge.js",
   "scripts": {
     "start": "gulp",
