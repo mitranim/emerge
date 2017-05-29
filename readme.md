@@ -36,6 +36,7 @@ and [`clojure.core`](https://clojuredocs.org/core-library).
   * [`putBy`](#putbyfun-prev-next)
   * [`patchBy`](#patchbyfun-prev-next)
   * [`putInBy`](#putinbyprev-path-fun-args)
+  * [`patchDicts`](#patchdictsvalues)
   * [`mergeDicts`](#mergedictsvalues)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
@@ -270,18 +271,29 @@ const result = putInBy(prev, [0, 'count'], x => x + 1)
 // [{count: 2}]
 ```
 
-### `mergeDicts(values)`
+### `patchDicts(...values)`
 
-where `values: [any]`
-
-Takes a list of values and combines them via [`merge`](#mergeprev-next),
-ignoring non-dict arguments. Always produces a dict.
+Takes any number of arguments and combines them via [`patch`](#patchprev-next),
+ignoring non-dicts. Always produces a dict.
 
 ```js
-mergeDicts([])
+patchDicts()
 // {}
 
-mergeDicts([{one: 1, two: {three: 3}}, 'non-dict', {two: {four: 4}}])
+patchDicts({one: 1}, 'non-dict', {two: 2})
+// {one: 1, two: 2}
+```
+
+### `mergeDicts(...values)`
+
+Takes any number of arguments and combines them via [`merge`](#mergeprev-next),
+ignoring non-dicts. Always produces a dict.
+
+```js
+mergeDicts()
+// {}
+
+mergeDicts({one: 1, two: {three: 3}}, 'non-dict', {two: {four: 4}})
 // {one: 1, two: {three: 3, four: 4}}
 ```
 

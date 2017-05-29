@@ -1,16 +1,17 @@
 {
   "name": "emerge",
-  "version": "0.0.31",
+  "version": "0.0.32",
   "main": "dist/emerge.js",
   "scripts": {
     "start": "gulp",
     "test": "node test"
   },
-  "description": "Functions for operating on JS lists and dicts as immutable, persistent data structures.",
+  "description": "Functions for operating on plain JS dicts and lists as immutable, persistent data structures",
   "keywords": [
-    "merge",
+    "functional",
     "immutable",
     "persistent",
+    "merge",
     "plain",
     "data"
   ],

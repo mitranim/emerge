@@ -40,9 +40,8 @@ gulp.task('compile', () => (
 gulp.task('minify', () => (
   gulp.src(src.dist, {ignore: '**/*.min.js'})
     .pipe($.uglify({
-      mangle: true,
-      compress: {warnings: false, screw_ie8: true},
-      wrap: true,
+      mangle: {toplevel: true},
+      compress: {warnings: false},
     }))
     .pipe($.rename(path => {
       path.extname = '.min.js'
@@ -61,7 +60,6 @@ gulp.task('test', done => {
     {env: {FORCE_COLOR: true}},
     (err, stdout, stderr) => {
       process.stdout.write(stdout)
-
       if (err) {
         done({
           showStack: false,
@@ -79,7 +77,7 @@ gulp.task('test', done => {
 })
 
 gulp.task('watch', () => {
-  $.watch(src.lib, gulp.parallel('test', 'build'))
+  $.watch(src.lib, gulp.series('build', 'test'))
   $.watch([src.test, './test-utils.js'], gulp.series('test'))
 })
 
