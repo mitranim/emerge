@@ -2,7 +2,7 @@
 
 const {create} = Object
 const {call, expect, to} = require('../test-utils')
-const {is, equal, equalBy} = require('../lib/emerge')
+const {is, equal, equalBy} = require('../')
 
 /**
  * is

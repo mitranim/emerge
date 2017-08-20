@@ -1,44 +1,49 @@
 'use strict'
 
-/* ***************************** Dependencies ********************************/
+/**
+ * Dependencies
+ */
 
 const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
-const {exec} = require('child_process')
-const chalk = require('chalk')
+const {spawn} = require('child_process')
 
-/* ******************************** Globals **********************************/
+/**
+ * Globals
+ */
 
-const src = {
-  lib: 'lib/**/*.js',
-  dist: 'dist/**/*.js',
-  test: 'test/**/*.js',
-}
+const _srcDir = 'src'
+const esDir = 'es'
+const distDir = 'dist'
+const srcFiles = 'src/**/*.js'
+const esFiles = 'es/**/*.js'
+const distFiles = 'dist/**/*.js'
+const testFiles = 'test/**/*.js'
 
-const out = {
-  lib: 'dist',
-}
+const [testExecutable, ...testArgs] = require('./package').scripts.test.split(/\s/g)
 
-const testCommand = require('./package').scripts.test
+const GulpErr = msg => ({showStack: false, toString: () => msg})
 
-let testProc = null
-
-/* ********************************* Tasks ***********************************/
+/**
+ * Tasks
+ */
 
 gulp.task('clear', () => (
-  del(out.lib).catch(console.error.bind(console))
+  del([esFiles, distFiles]).catch(console.error.bind(console))
 ))
 
 gulp.task('compile', () => (
-  gulp.src(src.lib)
+  gulp.src(srcFiles)
     .pipe($.babel())
-    .pipe(gulp.dest(out.lib))
-))
-
-// For evaluating minified size
-gulp.task('minify', () => (
-  gulp.src(src.dist, {ignore: '**/*.min.js'})
+    .pipe(gulp.dest(esDir))
+    .pipe($.babel({
+      plugins: [
+        'transform-es2015-modules-commonjs',
+      ],
+    }))
+    .pipe(gulp.dest(distDir))
+    // Ensures ES5 compliance and shows minified size
     .pipe($.uglify({
       mangle: {toplevel: true},
       compress: {warnings: false},
@@ -46,41 +51,38 @@ gulp.task('minify', () => (
     .pipe($.rename(path => {
       path.extname = '.min.js'
     }))
-    .pipe(gulp.dest(out.lib))
+    .pipe(gulp.dest(distDir))
 ))
 
+let testProc = null
+
 gulp.task('test', done => {
-  // Just started, let it finish
-  if (testProc && testProc.exitCode == null) return
+  // Still running, let it finish
+  if (testProc && testProc.exitCode == null) {
+    done()
+    return
+  }
 
-  if (testProc) testProc.kill()
+  testProc = spawn(testExecutable, testArgs)
+  testProc = spawn(testExecutable, testArgs, {env: Object.assign({FORCE_COLOR: true}, process.env)})
+  testProc.stdout.pipe(process.stdout)
+  testProc.stderr.pipe(process.stderr)
 
-  testProc = exec(
-    testCommand,
-    {env: {FORCE_COLOR: true}},
-    (err, stdout, stderr) => {
-      process.stdout.write(stdout)
-      if (err) {
-        done({
-          showStack: false,
-          toString () {
-            return `${chalk.red('Error')} in plugin '${chalk.cyan('lib:test')}':\n${stderr}`
-          },
-        })
-      }
-      else {
-        process.stderr.write(stderr)
-        done(null)
-      }
-    }
-  )
+  testProc.once('error', err => {
+    testProc.kill()
+    done(err)
+  })
+
+  testProc.once('exit', code => {
+    done(code ? GulpErr(`Test failed with exit code ${code}`) : null)
+  })
 })
 
 gulp.task('watch', () => {
-  $.watch(src.lib, gulp.series('build', 'test'))
-  $.watch([src.test, './test-utils.js'], gulp.series('test'))
+  $.watch(srcFiles, gulp.series('build', 'test'))
+  $.watch([testFiles, './test-utils.js'], gulp.series('test'))
 })
 
-gulp.task('build', gulp.series('clear', 'compile', 'minify'))
+gulp.task('build', gulp.series('clear', 'compile'))
 
-gulp.task('default', gulp.series('test', 'build', 'watch'))
+gulp.task('default', gulp.series('build', 'test', 'watch'))

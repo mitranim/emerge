@@ -1,5 +1,3 @@
-'use strict'
-
 // # Glossary
 //
 // put               = replace value, attempting to preserve old references
@@ -27,24 +25,20 @@
 
 const {freeze, keys: getKeys, prototype: protoObject, getPrototypeOf} = Object
 const {reduce, filter, slice} = Array.prototype
-const pub = exports
 
 /**
  * Boolean
  */
 
-pub.is = is
-function is (one, other) {
+export function is (one, other) {
   return one === other || (one !== one && other !== other)  // eslint-disable-line no-self-compare
 }
 
-pub.equal = equal
-function equal (one, other) {
+export function equal (one, other) {
   return equalBy(equal, one, other)
 }
 
-pub.equalBy = equalBy
-function equalBy (test, one, other) {
+export function equalBy (test, one, other) {
   validate(isFunction, test)
   return is(one, other) || (
     isList(one) && isList(other)
@@ -59,23 +53,19 @@ function equalBy (test, one, other) {
  * Get
  */
 
-pub.get = get
-function get (value, key) {
+export function get (value, key) {
   return value == null ? undefined : value[key]
 }
 
-pub.scan = scan
-function scan () {
+export function scan () {
   return arguments.length ? reduce.call(arguments, get) : undefined
 }
 
-pub.getIn = getIn
-function getIn (value, path) {
+export function getIn (value, path) {
   return reduce.call(path, get, value)
 }
 
-pub.getAt = getAt
-function getAt (path, value) {
+export function getAt (path, value) {
   return reduce.call(path, get, value)
 }
 
@@ -83,41 +73,34 @@ function getAt (path, value) {
  * Merge
  */
 
-pub.put = put
-function put (prev, next) {
+export function put (prev, next) {
   return putBy(put, prev, next)
 }
 
-pub.patch = patch
-function patch (prev, next) {
+export function patch (prev, next) {
   return patchBy(put, prev, next)
 }
 
-pub.merge = merge
-function merge (prev, next) {
+export function merge (prev, next) {
   return patchBy(merge, prev, next)
 }
 
-pub.putIn = putIn
-function putIn (prev, path, next) {
+export function putIn (prev, path, next) {
   validate(isPath, path)
   return assocIn(prev, path, put(getIn(prev, path), next))
 }
 
-pub.patchIn = patchIn
-function patchIn (prev, path, next) {
+export function patchIn (prev, path, next) {
   validate(isPath, path)
   return assocIn(prev, path, patch(getIn(prev, path), next))
 }
 
-pub.mergeIn = mergeIn
-function mergeIn (prev, path, next) {
+export function mergeIn (prev, path, next) {
   validate(isPath, path)
   return assocIn(prev, path, merge(getIn(prev, path), next))
 }
 
-pub.putBy = putBy
-function putBy (fun, prev, next) {
+export function putBy (fun, prev, next) {
   return (
     is(prev, next)
     ? prev
@@ -129,8 +112,7 @@ function putBy (fun, prev, next) {
   )
 }
 
-pub.patchBy = patchBy
-function patchBy (fun, prev, next) {
+export function patchBy (fun, prev, next) {
   return (
     is(prev, next)
     ? prev
@@ -142,36 +124,35 @@ function patchBy (fun, prev, next) {
   )
 }
 
-pub.putInBy = putInBy
-function putInBy (prev, path, fun) {
+export function putInBy (prev, path, fun) {
   validate(isFunction, fun)
   return putIn(prev, path, fun(getIn(prev, path), ...slice.call(arguments, 3)))
 }
 
-pub.patchDicts = patchDicts
-function patchDicts () {
+export function patchDicts () {
   return filter.call(arguments, isDict).reduce(patch, freeze({}))
 }
 
-pub.mergeDicts = mergeDicts
-function mergeDicts () {
+export function mergeDicts () {
   return filter.call(arguments, isDict).reduce(merge, freeze({}))
 }
 
 /**
- * Merge Utils
+ * Procedural Merge
+ *
+ * TODO convert to functional style where possible
  */
 
 function putListBy (fun, prev, next) {
   const out = Array(next.length)
-  for (let i = -1; ++i < next.length;) out[i] = fun(prev[i], next[i], i)
+  for (let i = -1; (i += 1) < next.length;) out[i] = fun(prev[i], next[i], i)
   return preserveBy(is, prev, freeze(out))
 }
 
 function putDictBy (fun, prev, next) {
   const out = {}
   const nextKeys = getKeys(next)
-  for (let i = -1; ++i < nextKeys.length;) {
+  for (let i = -1; (i += 1) < nextKeys.length;) {
     const key = nextKeys[i]
     const piece = fun(prev[key], next[key], key)
     if (piece != null) out[key] = piece
@@ -182,12 +163,12 @@ function putDictBy (fun, prev, next) {
 function patchDictBy (fun, prev, next) {
   const out = {}
   const prevKeys = getKeys(prev)
-  for (let i = -1; ++i < prevKeys.length;) {
+  for (let i = -1; (i += 1) < prevKeys.length;) {
     const key = prevKeys[i]
     if (!(key in next) && prev[key] != null) out[key] = prev[key]
   }
   const nextKeys = getKeys(next)
-  for (let i = -1; ++i < nextKeys.length;) {
+  for (let i = -1; (i += 1) < nextKeys.length;) {
     const key = nextKeys[i]
     const piece = fun(prev[key], next[key], key)
     if (piece != null) out[key] = piece
@@ -211,7 +192,7 @@ function assoc (prev, key, next) {
     ? prev
     : isListWithIndex(prev, key)
     ? assocOnList(prev, key, next)
-    : assocOnDict(isDict(prev) ? prev : {}, key, next)
+    : assocOnDict(toDict(prev), key, next)
   )
 }
 
@@ -223,13 +204,13 @@ function assocOnList (list, index, value) {
   return freeze(out)
 }
 
-function assocOnDict (dict, keyOrIndex, value) {
-  const key = String(keyOrIndex)
+function assocOnDict (dict, maybeKey, value) {
+  const key = String(maybeKey)
   if (is(dict[key], value)) return dict
   if (!(key in dict) && value == null) return dict
   const out = {}
   const oldKeys = getKeys(dict)
-  for (let i = -1; ++i < oldKeys.length;) {
+  for (let i = -1; (i += 1) < oldKeys.length;) {
     const oldkey = oldKeys[i]
     if (oldkey !== key && dict[oldkey] != null) out[oldkey] = dict[oldkey]
   }
@@ -314,8 +295,12 @@ function compareByKey (key, _index, fun, one, other) {
 }
 
 function everyBy (fun, list, a, b, c) {
-  for (let i = -1; ++i < list.length;) if (!fun(list[i], i, a, b, c)) return false
+  for (let i = -1; (i += 1) < list.length;) if (!fun(list[i], i, a, b, c)) return false
   return true
+}
+
+function toDict (value) {
+  return isDict(value) ? value : {}
 }
 
 function validate (test, value) {

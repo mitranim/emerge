@@ -1,17 +1,17 @@
 {
   "name": "emerge",
-  "version": "0.0.32",
+  "version": "0.1.0",
   "main": "dist/emerge.js",
+  "module": "es/emerge.js",
   "scripts": {
     "start": "gulp",
-    "test": "node test"
+    "test": "node test/test"
   },
-  "description": "Functions for operating on plain JS dicts and lists as immutable, persistent data structures",
+  "description": "Functions for operating on JS lists and dicts as immutable, persistent data structures, using structural sharing for efficiency. Heavily inspired by clojure.core",
   "keywords": [
-    "functional",
+    "merge",
     "immutable",
     "persistent",
-    "merge",
     "plain",
     "data"
   ],
@@ -24,24 +24,23 @@
     "url": "https://github.com/Mitranim/emerge.git"
   },
   "devDependencies": {
+    "babel-core": "6.26.0",
     "babel-eslint": "7.2.3",
     "babel-plugin-check-es2015-constants": "6.22.0",
-    "babel-plugin-transform-es2015-block-scoping": "6.24.1",
+    "babel-plugin-transform-es2015-block-scoping": "6.26.0",
     "babel-plugin-transform-es2015-destructuring": "6.23.0",
+    "babel-plugin-transform-es2015-modules-commonjs": "6.26.0",
     "babel-plugin-transform-es2015-spread": "6.22.0",
     "babel-plugin-transform-es2015-template-literals": "6.22.0",
-    "chalk": "1.1.3",
-    "del": "2.2.2",
-    "eslint": "3.19.0",
-    "eslint-plugin-eslint-plugin": "0.7.1",
-    "eslint-plugin-node": "4.2.2",
+    "chalk": "2.1.0",
+    "del": "3.0.0",
     "eslint_d": "4.2.5",
-    "fpx": "0.1.0",
+    "fpx": "0.3.0",
     "gulp": "gulpjs/gulp#4.0",
-    "gulp-babel": "6.1.2",
+    "gulp-babel": "7.0.0",
     "gulp-load-plugins": "1.5.0",
     "gulp-rename": "1.2.2",
-    "gulp-uglify": "2.1.2",
+    "gulp-uglify": "3.0.0",
     "gulp-watch": "4.3.11"
   }
 }

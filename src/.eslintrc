@@ -1,0 +1,10 @@
+{
+  "env": {
+    "browser": true,
+    "node": false,
+    "es6": false
+  },
+  "parserOptions": {
+    "sourceType": "module"
+  }
+}

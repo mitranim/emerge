@@ -6,7 +6,7 @@ const chalk = require('chalk')
 
 // This becomes meaningful after passing the boolean tests, but no sooner.
 // Therefore they must run first.
-const {equal} = require('./lib/emerge')
+const {equal} = require('./')
 
 /**
  * Setup

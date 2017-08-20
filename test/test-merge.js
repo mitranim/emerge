@@ -1,7 +1,7 @@
 'use strict'
 
 const {call, expect, to} = require('../test-utils')
-const {putBy, put, putIn, patchBy, patch, merge} = require('../lib/emerge')
+const {putBy, put, putIn, patchBy, patch, merge} = require('../')
 
 function pass (a, b) {return b}
 

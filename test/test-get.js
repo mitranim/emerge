@@ -3,7 +3,7 @@
 /* global Symbol */
 
 const {call, expect, to} = require('../test-utils')
-const {get, scan, getIn} = require('../lib/emerge')
+const {get, scan, getIn} = require('../')
 
 const tree = {
   one: 'one',
