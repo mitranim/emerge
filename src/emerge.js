@@ -23,7 +23,7 @@
 //
 // Add benchmarks with real-life data.
 
-const {freeze, keys: getKeys, prototype: protoObject, getPrototypeOf} = Object
+const {keys: getKeys, prototype: protoObject, getPrototypeOf} = Object
 const {reduce, filter, slice} = Array.prototype
 
 /**
@@ -130,11 +130,11 @@ export function putInBy (prev, path, fun) {
 }
 
 export function patchDicts () {
-  return filter.call(arguments, isDict).reduce(patch, freeze({}))
+  return filter.call(arguments, isDict).reduce(patch, {})
 }
 
 export function mergeDicts () {
-  return filter.call(arguments, isDict).reduce(merge, freeze({}))
+  return filter.call(arguments, isDict).reduce(merge, {})
 }
 
 /**
@@ -146,7 +146,7 @@ export function mergeDicts () {
 function putListBy (fun, prev, next) {
   const out = Array(next.length)
   for (let i = -1; (i += 1) < next.length;) out[i] = fun(prev[i], next[i], i)
-  return preserveBy(is, prev, freeze(out))
+  return preserveBy(is, prev, out)
 }
 
 function putDictBy (fun, prev, next) {
@@ -157,7 +157,7 @@ function putDictBy (fun, prev, next) {
     const piece = fun(prev[key], next[key], key)
     if (piece != null) out[key] = piece
   }
-  return preserveBy(is, prev, freeze(out))
+  return preserveBy(is, prev, out)
 }
 
 function patchDictBy (fun, prev, next) {
@@ -173,7 +173,7 @@ function patchDictBy (fun, prev, next) {
     const piece = fun(prev[key], next[key], key)
     if (piece != null) out[key] = piece
   }
-  return preserveBy(is, prev, freeze(out))
+  return preserveBy(is, prev, out)
 }
 
 function assocIn (prev, path, next) {
@@ -201,7 +201,7 @@ function assocOnList (list, index, value) {
   if (index < list.length && is(list[index], value)) return list
   const out = list.slice()
   out[index] = value
-  return freeze(out)
+  return out
 }
 
 function assocOnDict (dict, maybeKey, value) {
@@ -215,7 +215,7 @@ function assocOnDict (dict, maybeKey, value) {
     if (oldkey !== key && dict[oldkey] != null) out[oldkey] = dict[oldkey]
   }
   if (value != null) out[key] = value
-  return freeze(out)
+  return out
 }
 
 /**

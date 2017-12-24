@@ -7,7 +7,7 @@
 const $ = require('gulp-load-plugins')()
 const del = require('del')
 const gulp = require('gulp')
-const {spawn} = require('child_process')
+const {fork} = require('child_process')
 
 /**
  * Globals
@@ -20,8 +20,6 @@ const srcFiles = 'src/**/*.js'
 const esFiles = 'es/**/*.js'
 const distFiles = 'dist/**/*.js'
 const testFiles = 'test/**/*.js'
-
-const [testExecutable, ...testArgs] = require('./package').scripts.test.split(/\s/g)
 
 const GulpErr = msg => ({showStack: false, toString: () => msg})
 
@@ -63,15 +61,7 @@ gulp.task('test', done => {
     return
   }
 
-  testProc = spawn(testExecutable, testArgs)
-  testProc = spawn(testExecutable, testArgs, {env: Object.assign({FORCE_COLOR: true}, process.env)})
-  testProc.stdout.pipe(process.stdout)
-  testProc.stderr.pipe(process.stderr)
-
-  testProc.once('error', err => {
-    testProc.kill()
-    done(err)
-  })
+  testProc = fork('./test/test', {env: Object.assign({FORCE_COLOR: true}, process.env)})
 
   testProc.once('exit', code => {
     done(code ? GulpErr(`Test failed with exit code ${code}`) : null)

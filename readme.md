@@ -92,11 +92,10 @@ Minor merge utility with focus on structural sharing. Not very interesting by
 itself. See [`patch`](#patchprev-next) and [`putIn`](#putinprev-path-value) for
 more practical examples.
 
-Creates a new immutable version of `next` that reuses as much structure as
-possible from `prev`. In the newly created value, all references that have the
-same property path in `prev` and `next` and are structurally
-[`equal`](#equalone-other), are reused from `prev`. If `prev` and `next` are
-equal, `prev` is returned as-is.
+Creates a new version of `next` that reuses as much structure as possible from
+`prev`. In the newly created value, all references that have the same property
+path in `prev` and `next` and are structurally [`equal`](#equalone-other), are
+reused from `prev`. If `prev` and `next` are equal, `prev` is returned as-is.
 
 Following the [merge semantics](#merge-semantics), drops nil properties from the
 newly created value.
@@ -179,10 +178,9 @@ const result = merge(prev, next)
 
 Similar to [`clojure.core/assoc-in`](https://clojuredocs.org/clojure.core/assoc-in).
 
-Creates a new immutable version of `prev`, where `value` is
-[`put`](#putprev-next) into the location at `path`. The path must be a list of
-primitive values. Reuses as many references as possible from `prev`. Returns
-`prev` is the result is equal.
+Creates a new version of `prev`, where `value` is [`put`](#putprev-next) into
+the location at `path`. The path must be a list of primitive values. Reuses as
+many references as possible from `prev`. Returns `prev` is the result is equal.
 
 ```javascript
 const {putIn} = require('emerge')
@@ -208,10 +206,9 @@ putIn(null, ['one', 'two'], 2)
 
 ### `patchIn(prev, path, value)`
 
-Creates a new immutable version of `prev`, where `value` is patched into the
-location at `path`, using [`patch`](#patchprev-next). See
-[`putIn`](#putinprev-path-value). Reuses as many references as possible from
-`prev`.
+Creates a new version of `prev`, where `value` is patched into the location at
+`path`, using [`patch`](#patchprev-next). See [`putIn`](#putinprev-path-value).
+Reuses as many references as possible from `prev`.
 
 ```javascript
 const {patchIn} = require('emerge')
@@ -222,8 +219,8 @@ patchIn({one: {two: 2}}, ['one'], {three: 3})
 
 ### `mergeIn(prev, path, value)`
 
-Creates a new immutable version of `prev`, where `value` is deeply patched into
-the location at `path`, using [`merge`](#mergeprev-next). See
+Creates a new version of `prev`, where `value` is deeply patched into the
+location at `path`, using [`merge`](#mergeprev-next). See
 [`putIn`](#putinprev-path-value). Reuses as many references as possible from
 `prev`.
 
@@ -259,8 +256,8 @@ where `fun: ƒ(prevValue, ...args)`
 
 Similar to [`clojure.core/update-in`](https://clojuredocs.org/clojure.core/update-in).
 
-Creates a new immutable version of `prev`, calling `fun` to create a value for
-the location at `path` and using [`putIn`](#putinprev-path-value) to update it.
+Creates a new version of `prev`, calling `fun` to create a value for the
+location at `path` and using [`putIn`](#putinprev-path-value) to update it.
 
 ```javascript
 const {putInBy} = require('emerge')
