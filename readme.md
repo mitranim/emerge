@@ -1,25 +1,24 @@
 ## Description
 
-Utilities for using plain JavaScript dicts and lists as
-<a href="https://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable</a>,
-<a href="https://en.wikipedia.org/wiki/Persistent_data_structure" target="_blank">persistent</a>
-data structures.
+Utilities for using plain JavaScript dicts and lists as <a href="https://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable</a> data structures, with memory-efficient updates using <a href="https://en.wikipedia.org/wiki/Persistent_data_structure" target="_blank">structural sharing</a>, and structural equality.
 
-Immutable entities can't be modified without creating a new version. They're
-_values_ rather than _references_. JavaScript fails to differentiate between
-these concepts. Emerge helps you to bolt this on top of the language.
+JS dicts and lists are almost usable as generic data structures, barring a few
+flaws:
 
-"Persistent" means that new versions share as much structure as possible with
-old versions. This is known as _structural sharing_. It conserves memory and
-allows to use identity ([`is`](#isone-other)) as a fast substitute for value
-equality ([`equal`](#equalone-other)) on sibling values.
+  1) updates mutate data in-place
+
+  2) no value equality, just reference equality
+
+  3) only strings as dict keys (symbols are rarely useful)
+
+  4) no set notation, no sets in JSON
+
+Emerge addresses (1) and (2). It provides functions to "update" dicts and lists by creating new versions that share as much structure as possible with old versions. This is known as _structural sharing_. It conserves memory and allows to use identity ([`is`](#isone-other)) on sibling values as a fast substitute for "proper" value equality ([`equal`](#equalone-other)), which Emerge also provides.
 
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
 data. Extremely lightweight (3 KB minified).
 
-Inspired by
-[Clojure's philosophy](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md)
-and [`clojure.core`](https://clojuredocs.org/core-library).
+Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md) and the [`clojure.core`](https://clojuredocs.org/core-library) data utils.
 
 ## TOC
 
@@ -54,12 +53,15 @@ Why not ImmutableJS or another alternative?
 
 1. Plain data. Emerge uses plain dicts and lists.
 
-  * Uniform interface to data: read at path, set at path. No methods, just functions.
-  * Easy to explore data in REPL.
+  * Uniform interface to data: read at path, set at path, merge. Just a few
+    functions that work on all structures.
+  * Easy to explore your data in a REPL.
   * Serialise into JSON and back without losing information.
 
-2. Size. ImmutableJS is 140+ KB minified, unacceptable. Emerge is just 3 KB
-minified.
+2. Size. At the time of writing, ImmutableJS is 57 KB minified, unacceptable.
+   Emerge is just 3 KB minified.
+
+3. Performance. Emerge is probably about as efficient as this kind of stuff gets.
 
 ## Installation
 
