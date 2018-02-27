@@ -61,7 +61,7 @@ gulp.task('test', done => {
     return
   }
 
-  testProc = fork('./test/test', {env: Object.assign({FORCE_COLOR: true}, process.env)})
+  testProc = fork('./test/test')
 
   testProc.once('exit', code => {
     done(code ? GulpErr(`Test failed with exit code ${code}`) : null)
@@ -70,7 +70,7 @@ gulp.task('test', done => {
 
 gulp.task('watch', () => {
   $.watch(srcFiles, gulp.series('build', 'test'))
-  $.watch([testFiles, './test-utils.js'], gulp.series('test'))
+  $.watch(testFiles, gulp.series('test'))
 })
 
 gulp.task('build', gulp.series('clear', 'compile'))

@@ -56,7 +56,8 @@ Why not ImmutableJS or another alternative?
   * Uniform interface to data: read at path, set at path, merge. Just a few
     functions that work on all structures.
   * Easy to explore your data in a REPL.
-  * Serialise into JSON and back without losing information.
+  * No need for interop calls.
+  * Complete compatibility with JSON.
 
 2. Size. At the time of writing, ImmutableJS is 57 KB minified, unacceptable.
    Emerge is just 3 KB minified.
@@ -333,7 +334,7 @@ equalBy(is, {list: []}, {list: []})
 // false
 
 // Deep equality: `equal` is just a special case of `equalBy`
-function equal (one, other) {
+function equal(one, other) {
   return equalBy(equal, one, other)
 }
 ```
@@ -385,7 +386,7 @@ getAt(['one', 'two'], {one: {two: 2}})
 When creating new structures, Emerge follows a few special rules:
 
 * In dicts, `null` and `undefined` properties are considered non-existent.
-  Setting a property to `null` is the same as deleting it.
+  Setting a property to `null` or `undefined` is the same as deleting it.
 * Non-value references are treated atomically: included or replaced wholesale.
 
 Emerge differentiates between _values_ (data) and _references_ (non-data). The
@@ -407,3 +408,7 @@ Emerge for trees of any kind, even non-data.
 ## Compatibility
 
 Any ES5 environment (IE9+).
+
+## Misc
+
+I'm receptive to suggestions. If this library _almost_ fits you but needs changes, open an issue or chat me up. Contacts: https://mitranim.com/#contacts

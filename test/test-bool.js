@@ -1,58 +1,40 @@
 'use strict'
 
 const {create} = Object
-const {call, expect, to} = require('../test-utils')
-const {is, equal, equalBy} = require('../')
+const t = require('./utils')
+const e = require('../')
 
-/**
- * is
- */
 
-expect(call(is),                  to.eq(true))
-expect(call(is, null, undefined), to.eq(false))
-expect(call(is, 1,    1),         to.eq(true))
-expect(call(is, NaN,  NaN),       to.eq(true))
-expect(call(is, '1',  1),         to.eq(false))
-expect(call(is, {},   {}),        to.eq(false))
+t.is(e.is(), true)
+t.is(e.is(null, undefined), false)
+t.is(e.is(1, 1), true)
+t.is(e.is(NaN, NaN), true)
+t.is(e.is('1', 1), false)
+t.is(e.is({}, {}), false)
 
-/**
- * equal
- */
 
-expect(call(equal, [],           []),           to.eq(true))
-expect(call(equal, {},           {}),           to.eq(true))
-expect(call(equal, create(null), create(null)), to.eq(true))
+t.is(e.equal([], []), true)
+t.is(e.equal({}, {}), true)
+t.is(e.equal(create(null), create(null)), true)
+t.is(e.equal(create({}), create({})), false, `non-plain objects shouldn't compare equal`)
 
-expect(
-  call(equal, create({}), create({})),
-  ({ok, returned}) => ({
-    ok: ok && returned === false,
-    comment: `non-plain objects shouldn't compare equal`,
-  })
-)
-
-expect(
-  call(
-    equal,
+t.is(
+  e.equal(
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'},
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'}
   ),
-  to.eq(true)
+  true
 )
 
-expect(
-  call(
-    equal,
+t.is(
+  e.equal(
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five'},
     {one: {two: {three: NaN}}, four: [4, 4], five: 'five', six: 6}
   ),
-  to.eq(false)
+  false
 )
 
-/**
- * equalBy
- */
 
-expect(call(equalBy, is,    [1],     [1]),     to.eq(true))
-expect(call(equalBy, is,    [1, {}], [1, {}]), to.eq(false))
-expect(call(equalBy, equal, [1, {}], [1, {}]), to.eq(true))
+t.is(e.equalBy(e.is, [1],     [1]),    true)
+t.is(e.equalBy(e.is, [1, {}], [1, {}]),    false)
+t.is(e.equalBy(e.equal, [1, {}], [1, {}]), true)
