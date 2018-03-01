@@ -28,9 +28,7 @@ t.equal(e.putBy(pass, ['one'], ['one', NaN]), ['one', NaN])
 }
 
 t.equal(e.putBy(pass, ['one'], ['two', 'three']), ['two', 'three'])
-
 t.equal(e.putBy(pass, ['one'], {one: 1}), {one: 1})
-
 t.equal(e.putBy(pass, {one: 1}, ['one']), ['one'])
 
 t.equal(
