@@ -24,6 +24,7 @@
 // Add benchmarks with real-life data.
 
 const {keys: getKeys, prototype: protoObject, getPrototypeOf} = Object
+const {hasOwnProperty} = protoObject
 const {reduce, filter, slice} = Array.prototype
 
 /**
@@ -152,8 +153,8 @@ function putDictBy(prev, next, fun) {
   const nextKeys = getKeys(next)
   for (let i = -1; (i += 1) < nextKeys.length;) {
     const key = nextKeys[i]
-    const piece = fun(prev[key], next[key], key)
-    if (piece != null) out[key] = piece
+    const value = fun(prev[key], next[key], key)
+    if (value != null) out[key] = value
   }
   return preserveBy(prev, out, is)
 }
@@ -163,13 +164,13 @@ function patchDictBy(prev, next, fun) {
   const prevKeys = getKeys(prev)
   for (let i = -1; (i += 1) < prevKeys.length;) {
     const key = prevKeys[i]
-    if (!(key in next) && prev[key] != null) out[key] = prev[key]
+    if (prev[key] != null && !hasOwnProperty.call(next, key)) out[key] = prev[key]
   }
   const nextKeys = getKeys(next)
   for (let i = -1; (i += 1) < nextKeys.length;) {
     const key = nextKeys[i]
-    const piece = fun(prev[key], next[key], key)
-    if (piece != null) out[key] = piece
+    const value = fun(prev[key], next[key], key)
+    if (value != null) out[key] = value
   }
   return preserveBy(prev, out, is)
 }
@@ -205,7 +206,7 @@ function assocOnList(list, index, value) {
 function assocOnDict(dict, maybeKey, value) {
   const key = String(maybeKey)
   if (is(dict[key], value)) return dict
-  if (!(key in dict) && value == null) return dict
+  if (value == null && !hasOwnProperty.call(dict, key)) return dict
   const out = {}
   const oldKeys = getKeys(dict)
   for (let i = -1; (i += 1) < oldKeys.length;) {
@@ -228,24 +229,23 @@ function isObject(value) {
   return value !== null && typeof value === 'object'
 }
 
-function isList(value) {
-  return isSpecialObject(value) && isNatural(value.length)
-}
-
 function isDict(value) {
   return isObject(value) && isPlainPrototype(getPrototypeOf(value))
-}
-
-function isSpecialObject(value) {
-  return isObject(value) && (!isPlainPrototype(getPrototypeOf(value)) || isArguments(value))
 }
 
 function isPlainPrototype(value) {
   return value === null || value === protoObject
 }
 
+function isList(value) {
+  return isObject(value) && (
+    isArguments(value) ||
+    (!isPlainPrototype(getPrototypeOf(value)) && isNatural(value.length))
+  )
+}
+
 function isArguments(value) {
-  return isObject(value) && 'callee' in value && isNatural(value.length)
+  return isObject(value) && isNatural(value.length) && hasOwnProperty.call(value, 'callee')
 }
 
 function isFunction(value) {
@@ -253,7 +253,7 @@ function isFunction(value) {
 }
 
 function isNatural(value) {
-  return typeof value === 'number' && value >= 0 && value % 1 === 0
+  return typeof value === 'number' && value >= 0 && (value % 1) === 0
 }
 
 function isPath(value) {
@@ -285,7 +285,7 @@ function everyDictPair(one, other, fun) {
 }
 
 function has(key, _index, dict) {
-  return key in dict
+  return hasOwnProperty.call(dict, key)
 }
 
 function compareByKey(key, _index, fun, one, other) {
