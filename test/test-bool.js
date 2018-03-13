@@ -15,6 +15,7 @@ t.is(e.is({}, {}), false)
 
 t.is(e.equal([], []), true)
 t.is(e.equal({}, {}), true)
+t.is(e.equal({}, []), false)
 t.is(e.equal(create(null), create(null)), true)
 t.is(e.equal(create({}), create({})), false, `non-plain objects shouldn't compare equal`)
 
@@ -35,6 +36,8 @@ t.is(
 )
 
 
-t.is(e.equalBy(e.is, [1],     [1]),    true)
-t.is(e.equalBy(e.is, [1, {}], [1, {}]),    false)
-t.is(e.equalBy(e.equal, [1, {}], [1, {}]), true)
+// Should add an example of an equality function with support for arbitrary types.
+
+t.is(e.equalBy([1],     [1],     e.is),    true)
+t.is(e.equalBy([1, {}], [1, {}], e.is),    false)
+t.is(e.equalBy([1, {}], [1, {}], e.equal), true)

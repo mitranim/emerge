@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.1.2",
+  "version": "0.2.0",
   "main": "dist/emerge.js",
   "module": "es/emerge.js",
   "scripts": {
@@ -31,16 +31,14 @@
     "babel-plugin-transform-es2015-block-scoping": "6.26.0",
     "babel-plugin-transform-es2015-destructuring": "6.23.0",
     "babel-plugin-transform-es2015-modules-commonjs": "6.26.0",
-    "babel-plugin-transform-es2015-spread": "6.22.0",
     "babel-plugin-transform-es2015-template-literals": "6.22.0",
-    "chalk": "2.1.0",
     "del": "3.0.0",
-    "eslint_d": "4.2.5",
+    "eslint_d": "5.2.2",
+    "fancy-log": "1.3.2",
     "fpx": "0.3.0",
-    "gulp": "gulpjs/gulp#4.0",
+    "gulp": "4.0",
     "gulp-babel": "7.0.0",
     "gulp-load-plugins": "1.5.0",
-    "gulp-rename": "1.2.2",
     "gulp-uglify": "3.0.0",
     "gulp-watch": "4.3.11"
   }

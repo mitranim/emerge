@@ -130,7 +130,11 @@
     "func-names": ["error", "as-needed"],
     // "func-style": ["error", "declaration"],
     // "id-length": ["error", {"min": 3}],
-    "indent": ["error", 2, {"SwitchCase": 1}],
+    "indent": ["error", 2, {
+      "SwitchCase": 1,
+      "flatTernaryExpressions": true,
+      "ignoredNodes": ["ConditionalExpression"]
+    }],
     // "key-spacing": ["error", {"align": "value"}],
     // "key-spacing": "error",
     "keyword-spacing": "error",
