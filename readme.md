@@ -35,7 +35,7 @@ Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob
   * [`removeAtIndex`](#removeatindexlist-index)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
-  * [`equalBy`](#equalbytest-one-other)
+  * [`equalBy`](#equalby-one-other-fun)
   * [`get`](#getvalue-key)
   * [`getIn`](#getinvalue-path)
   * [`scan`](#scanvalue-path)
@@ -325,31 +325,31 @@ const next = {one: NaN, two: [2]}
 equal(prev, next)  // true
 ```
 
-### `equalBy(test, one, other)`
+### `equalBy(one, other, fun)`
 
-where `test: ƒ(oneValue, otherValue)`
+where `fun: ƒ(oneValue, otherValue)`
 
-Customisable equality. Uses `test` to compare properties of lists and dicts, and
-`is` to compare other values. Not recursive by itself, but `test` may invoke
+Customisable equality. Uses `fun` to compare properties of lists and dicts, and
+`is` to compare other values. Not recursive by itself, but `fun` may invoke
 `equalBy` to implement a recursive algorithm.
 
 ```js
 // Shallow equality
-equalBy(is, {one: 1}, {one: 1})
+equalBy({one: 1}, {one: 1}, is)
 // true
-equalBy(is, {list: []}, {list: []})
+equalBy({list: []}, {list: []}, is)
 // false
 
 // Deep equality: `equal` is just a special case of `equalBy`
 function equal(one, other) {
-  return equalBy(equal, one, other)
+  return equalBy(one, other, equal)
 }
 
 // Add support for arbitrary types
 function myEqual(one, other) {
   return isDate(one)
     ? isDate(other) && one.valueOf() === other.valueOf()
-    : equalBy(myEqual, one, other)
+    : equalBy(one, other, myEqual)
 }
 
 function isDate(value) {
