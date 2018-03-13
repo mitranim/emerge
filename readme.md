@@ -35,7 +35,7 @@ Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob
   * [`removeAtIndex`](#removeatindexlist-index)
   * [`is`](#isone-other)
   * [`equal`](#equalone-other)
-  * [`equalBy`](#equalby-one-other-fun)
+  * [`equalBy`](#equalbyone-other-fun)
   * [`get`](#getvalue-key)
   * [`getIn`](#getinvalue-path)
   * [`scan`](#scanvalue-path)
