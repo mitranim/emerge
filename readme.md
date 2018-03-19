@@ -311,8 +311,6 @@ to itself. Used internally for all identity checks.
 
 ### `equal(one, other)`
 
-Renamed `deepEqual -> equal` in `0.0.25`.
-
 True if the inputs are equal by _value_ rather than by identity. Ignores
 prototypes and non-enumerable properties.
 

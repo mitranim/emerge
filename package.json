@@ -1,6 +1,6 @@
 {
   "name": "emerge",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "main": "dist/emerge.js",
   "module": "es/emerge.js",
   "scripts": {

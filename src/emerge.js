@@ -89,11 +89,14 @@ export function get(value, key) {
 }
 
 export function getIn(value, path) {
-  return reduce.call(path, get, value)
+  validate(path, isList)
+  for (let i = -1; ++i < path.length;) value = get(value, path[i])
+  return value
 }
 
-export function scan() {
-  return !arguments.length ? undefined : reduce.call(arguments, get)
+export function scan(value) {
+  for (let i = 0; ++i < arguments.length;) value = get(value, arguments[i])
+  return value
 }
 
 /**
@@ -278,15 +281,15 @@ function isPlainPrototype(value) {
   return value === null || value === protoObject
 }
 
+// Supports non-Array lists, such as `arguments` and various DOM lists.
+// Unsure if this makes any sense, considering our policy on non-dict objects.
+// Could be made much faster in V8 by retrieving the prototype before checking
+// any properties. Should check other engines before making such "weird"
+// optimizations.
 function isList(value) {
-  return isObject(value) && (
-    isArguments(value) ||
-    (!isPlainPrototype(getPrototypeOf(value)) && isNatural(value.length))
+  return isObject(value) && isNatural(value.length) && (
+    !isPlainPrototype(getPrototypeOf(value)) || has(value, 'callee')
   )
-}
-
-function isArguments(value) {
-  return /* isObject(value) && */ isNatural(value.length) && has(value, 'callee')
 }
 
 function isFunction(value) {
@@ -302,7 +305,7 @@ function isNatural(value) {
 }
 
 function isPath(value) {
-  return isList(value) && value.every(isPrimitive)
+  return isList(value) && everyBy(value, isPrimitive)
 }
 
 function everyListPairBy(one, other, fun) {
