@@ -5,7 +5,6 @@
   "module": "es/emerge.js",
   "scripts": {
     "start": "gulp",
-    "test": "node test/test",
     "prepublishOnly": "gulp build"
   },
   "description": "Functions for operating on JS lists and dicts as immutable, persistent data structures, using structural sharing for efficiency. Heavily inspired by clojure.core",

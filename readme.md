@@ -1,6 +1,6 @@
 ## Description
 
-Utilities for using plain JavaScript dicts and lists as <a href="https://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable</a> data structures, with memory-efficient updates using <a href="https://en.wikipedia.org/wiki/Persistent_data_structure" target="_blank">structural sharing</a>, and structural equality.
+Utilities for using plain JavaScript dicts and lists as <a href="https://en.wikipedia.org/wiki/Immutable_object" target="_blank">immutable</a> data structures, with structural equality and memory-efficient updates using <a href="https://en.wikipedia.org/wiki/Persistent_data_structure" target="_blank">structural sharing</a>.
 
 JS dicts and lists are almost usable as generic data structures, barring a few flaws:
 
@@ -432,9 +432,9 @@ Performance improvements, simplified internals, and a breaking API cleanup that'
 * added list-only operations: `insertAtIndex` and `removeAtIndex`
 * because `put` now acts on a single property by key, `putBy` takes a function to be applied to that property; the old `putBy` functionality has been removed
 * `patchBy` has been removed
-* `putBy` and `equalBy` now accept the operator function as the _last_ argument; this is consistent with `putInBy`, easier to remember (mnemonic: operator comes last), lets us accept additional arguments, and more convenient with lambdas
-* `putBy` now accepts up to 10 additional arguments for the operator, like `putInBy`
+* `putBy` and `equalBy` now accept the operator function as the _last_ argument; this is consistent with `putInBy`, easier to remember (mnemonic: operator comes last), lets us accept additional arguments, and is more convenient with lambdas
 * `putInBy` is now limited to 10 additional arguments for the operator
+* `putBy` now accepts up to 10 additional arguments for the operator, like `putInBy`
 
 #### Migration guide for `0.1.2` → `0.2.0`
 

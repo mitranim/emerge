@@ -318,6 +318,10 @@ t.equal(e.patch({one: {two: 2}}, {one: {three: 3}}), {one: {three: 3}})
   t.is(src.one, out.one)
 }
 
+// Works with multiple args
+t.equal(e.patch({one: 1}, {two: 2}, {three: 3}), {one: 1, two: 2, three: 3})
+t.equal(e.patch(undefined, {two: 2}, {three: 3}), {two: 2, three: 3})
+
 /**
  * merge
  */
@@ -350,6 +354,10 @@ t.equal(e.merge({one: {two: 2}}, {one: {three: 3}}), {one: {two: 2, three: 3}})
   t.equal(out, {one: {two: 2}, three: 3})
   t.is(src.one, out.one)
 }
+
+// Works with multiple args
+t.equal(e.merge({one: 1}, {two: 2}, {three: 3}), {one: 1, two: 2, three: 3})
+t.equal(e.merge(undefined, {two: 2}, {three: 3}), {two: 2, three: 3})
 
 /**
  * insertAtIndex

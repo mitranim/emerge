@@ -45,8 +45,8 @@
 // Currently using (1). Will probably switch to (3) after anyone runs into the
 // argument limit and complains.
 //
-// Argument allocation from things like `reduce.call(arguments)` seems cheap
-// enough.
+// Argument allocation from `reduce.call(arguments)` seems low in comparison
+// to the patching that follows it.
 //
 //
 // # TODO
@@ -90,12 +90,12 @@ export function get(value, key) {
 
 export function getIn(value, path) {
   validate(path, isList)
-  for (let i = -1; ++i < path.length;) value = get(value, path[i])
+  for (let i = 0; i < path.length; i += 1) value = get(value, path[i])
   return value
 }
 
 export function scan(value) {
-  for (let i = 0; ++i < arguments.length;) value = get(value, arguments[i])
+  for (let i = 1; i < arguments.length; i += 1) value = get(value, arguments[i])
   return value
 }
 
@@ -216,7 +216,7 @@ function assocAtKey(dict, key, value) {
   }
   const out = {}
   const prevKeys = getKeys(dict)
-  for (let i = -1; (i += 1) < prevKeys.length;) {
+  for (let i = 0; i < prevKeys.length; i += 1) {
     const prevKey = prevKeys[i]
     if (prevKey !== key && dict[prevKey] != null) out[prevKey] = dict[prevKey]
   }
@@ -226,14 +226,14 @@ function assocAtKey(dict, key, value) {
 
 function replaceListBy(prev, next, fun) {
   const out = Array(next.length)
-  for (let i = -1; (i += 1) < next.length;) out[i] = fun(prev[i], next[i])
+  for (let i = 0; i < next.length; i += 1) out[i] = fun(prev[i], next[i])
   return equalBy(prev, out, is) ? prev : out
 }
 
 function replaceDictBy(prev, next, fun) {
   const out = {}
   const nextKeys = getKeys(next)
-  for (let i = -1; (i += 1) < nextKeys.length;) {
+  for (let i = 0; i < nextKeys.length; i += 1) {
     const key = nextKeys[i]
     const value = fun(prev[key], next[key])
     if (value != null) out[key] = value
@@ -244,12 +244,12 @@ function replaceDictBy(prev, next, fun) {
 function patchDictBy(prev, next, fun) {
   const out = {}
   const prevKeys = getKeys(prev)
-  for (let i = -1; (i += 1) < prevKeys.length;) {
+  for (let i = 0; i < prevKeys.length; i += 1) {
     const key = prevKeys[i]
     if (prev[key] != null && !has(next, key)) out[key] = prev[key]
   }
   const nextKeys = getKeys(next)
-  for (let i = -1; (i += 1) < nextKeys.length;) {
+  for (let i = 0; i < nextKeys.length; i += 1) {
     const key = nextKeys[i]
     const value = fun(prev[key], next[key])
     if (value != null) out[key] = value
@@ -340,7 +340,9 @@ function compareAtKeyBy(key, _index, fun, one, other) {
 }
 
 function everyBy(list, fun, a, b, c) {
-  for (let i = -1; (i += 1) < list.length;) if (!fun(list[i], i, a, b, c)) return false
+  for (let i = 0; i < list.length; i += 1) {
+    if (!fun(list[i], i, a, b, c)) return false
+  }
   return true
 }
 
