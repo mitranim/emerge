@@ -45,17 +45,20 @@
 // Currently using (1). Will probably switch to (3) after anyone runs into the
 // argument limit and complains.
 //
-// Argument allocation from `reduce.call(arguments)` seems low in comparison
-// to the patching that follows it.
+// In `patch` and `merge`, argument allocation and slow `Array.prototype.reduce`
+// should be negligible compared to the actual patching.
 //
 //
 // # TODO
 //
 // Add benchmarks with large real-world data.
 
-const {keys: getKeys, prototype: protoObject, getPrototypeOf} = Object
-const {hasOwnProperty} = protoObject
-const {reduce, slice} = Array.prototype
+const Object_ = Object
+const getKeys = Object_.keys
+const NOP     = Object.prototype
+const has     = NOP.hasOwnProperty
+const Array_  = Array
+const NAP     = Array_.prototype
 
 /**
  * Boolean
@@ -72,8 +75,8 @@ export function equal(one, other) {
 export function equalBy(one, other, fun) {
   validate(fun, isFunction)
   return is(one, other) || (
-    isList(one)
-    ? isList(other) && everyListPairBy(one, other, fun)
+    isArray(one)
+    ? isArray(other) && everyListPairBy(one, other, fun)
     : isDict(one)
     ? isDict(other) && everyDictPairBy(one, other, fun)
     : false
@@ -89,7 +92,7 @@ export function get(value, key) {
 }
 
 export function getIn(value, path) {
-  validate(path, isList)
+  validate(path, isArray)
   for (let i = 0; i < path.length; i += 1) value = get(value, path[i])
   return value
 }
@@ -124,26 +127,26 @@ export function putInBy(prev, path, fun, a, b, c, d, e, f, g, h, i, j) {
 }
 
 export function patch(prev, next) {
-  return arguments.length > 2 ? reduce.call(arguments, patchTwo) : patchTwo(prev, next)
+  return arguments.length > 2 ? NAP.reduce.call(arguments, patchTwo) : patchTwo(prev, next)
 }
 
 export function merge(prev, next) {
-  return arguments.length > 2 ? reduce.call(arguments, mergeTwo) : mergeTwo(prev, next)
+  return arguments.length > 2 ? NAP.reduce.call(arguments, mergeTwo) : mergeTwo(prev, next)
 }
 
 export function insertAtIndex(list, index, value) {
-  list = toList(list)
+  list = toArray(list)
   validateBounds(list, index)
-  list = slice.call(list)
+  list = NAP.slice.call(list)
   list.splice(index, 0, value)
   return list
 }
 
 export function removeAtIndex(list, index) {
   validate(index, isInteger)
-  list = toList(list)
+  list = toArray(list)
   if (isNatural(index) && index < list.length) {
-    list = slice.call(list)
+    list = NAP.slice.call(list)
     list.splice(index, 1)
   }
   return list
@@ -157,8 +160,8 @@ function putAny(prev, next) {
   return (
     is(prev, next)
     ? prev
-    : isList(prev)
-    ? (isList(next) ? replaceListBy(prev, next, putAny) : next)
+    : isArray(prev)
+    ? (isArray(next) ? replaceListBy(prev, next, putAny) : next)
     : isDict(prev)
     ? (isDict(next) ? replaceDictBy(prev, next, putAny) : next)
     : next
@@ -182,7 +185,7 @@ function mergeDictsOrPutAny(prev, next) {
 }
 
 function assoc(prev, key, next) {
-  return isList(prev)
+  return isArray(prev)
     ? assocAtIndex(prev, key, next)
     : assocAtKey(toDict(prev), key, next)
 }
@@ -201,7 +204,7 @@ function assocInAt(prev, path, next, index) {
 function assocAtIndex(list, index, value) {
   validateBounds(list, index)
   if (index < list.length && is(list[index], value)) return list
-  const out = slice.call(list)
+  const out = NAP.slice.call(list)
   out[index] = value
   return out
 }
@@ -209,7 +212,7 @@ function assocAtIndex(list, index, value) {
 function assocAtKey(dict, key, value) {
   key = toKey(key)
   if (value == null) {
-    if (!has(dict, key)) return dict
+    if (!has.call(dict, key)) return dict
   }
   else if (is(dict[key], value)) {
     return dict
@@ -225,7 +228,7 @@ function assocAtKey(dict, key, value) {
 }
 
 function replaceListBy(prev, next, fun) {
-  const out = Array(next.length)
+  const out = Array_(next.length)
   for (let i = 0; i < next.length; i += 1) out[i] = fun(prev[i], next[i])
   return equalBy(prev, out, is) ? prev : out
 }
@@ -246,7 +249,7 @@ function patchDictBy(prev, next, fun) {
   const prevKeys = getKeys(prev)
   for (let i = 0; i < prevKeys.length; i += 1) {
     const key = prevKeys[i]
-    if (prev[key] != null && !has(next, key)) out[key] = prev[key]
+    if (prev[key] != null && !has.call(next, key)) out[key] = prev[key]
   }
   const nextKeys = getKeys(next)
   for (let i = 0; i < nextKeys.length; i += 1) {
@@ -274,22 +277,13 @@ function isObject(value) {
 }
 
 function isDict(value) {
-  return isObject(value) && isPlainPrototype(getPrototypeOf(value))
+  if (!isObject(value)) return false
+  const proto = Object_.getPrototypeOf(value)
+  return proto === null || proto === NOP
 }
 
-function isPlainPrototype(value) {
-  return value === null || value === protoObject
-}
-
-// Supports non-Array lists, such as `arguments` and various DOM lists.
-// Unsure if this makes any sense, considering our policy on non-dict objects.
-// Could be made much faster in V8 by retrieving the prototype before checking
-// any properties. Should check other engines before making such "weird"
-// optimizations.
-function isList(value) {
-  return isObject(value) && isNatural(value.length) && (
-    !isPlainPrototype(getPrototypeOf(value)) || has(value, 'callee')
-  )
+function isArray(value) {
+  return isObject(value) && value instanceof Array_
 }
 
 function isFunction(value) {
@@ -305,7 +299,7 @@ function isNatural(value) {
 }
 
 function isPath(value) {
-  return isList(value) && everyBy(value, isPrimitive)
+  return isArray(value) && everyBy(value, isPrimitive)
 }
 
 function everyListPairBy(one, other, fun) {
@@ -328,11 +322,7 @@ function everyDictPairBy(one, other, fun) {
 }
 
 function hasAt(key, _index, dict) {
-  return has(dict, key)
-}
-
-function has(value, key) {
-  return hasOwnProperty.call(value, key)
+  return has.call(dict, key)
 }
 
 function compareAtKeyBy(key, _index, fun, one, other) {
@@ -346,8 +336,8 @@ function everyBy(list, fun, a, b, c) {
   return true
 }
 
-function toList(value) {
-  return isList(value) ? value : []
+function toArray(value) {
+  return isArray(value) ? value : []
 }
 
 function toDict(value) {
@@ -372,7 +362,7 @@ function validate(value, test) {
 function show(value) {
   return isFunction(value)
     ? (value.name || value.toString())
-    : isList(value) || isDict(value)
+    : isArray(value) || isDict(value)
     ? JSON.stringify(value)
     : String(value)
 }

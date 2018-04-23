@@ -15,7 +15,7 @@ JS dicts and lists are almost usable as generic data structures, barring a few f
 Emerge addresses (1) and (2). It provides functions to "update" dicts and lists by creating new versions that share as much structure as possible with old versions. This is known as _structural sharing_. It conserves memory and allows to use identity ([`is`](#isone-other)) on sibling values as a fast substitute for "proper" value equality ([`equal`](#equalone-other)), which Emerge also provides.
 
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
-data. Extremely lightweight (3 KB minified).
+data. Extremely lightweight (≈ 3 KiB minified). Probably the fastest among the alternatives.
 
 Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md) and the [`clojure.core`](https://clojuredocs.org/core-library) data utils.
 
@@ -45,7 +45,7 @@ Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob
 
 ## Why
 
-Why not ImmutableJS or another alternative?
+Why not ImmutableJS or something similar?
 
 1. Plain data. Emerge uses plain dicts and lists.
 
@@ -55,10 +55,16 @@ Why not ImmutableJS or another alternative?
   * No need for interop calls
   * Complete compatibility with JSON
 
-2. Size. At the time of writing, ImmutableJS is 57 KB minified, unacceptable.
-   Emerge is just 3 KB minified.
+2. Size. At the time of writing, ImmutableJS is 57 KiB minified, unacceptable.
+   Emerge is just ≈ 3 KiB minified.
 
 3. Performance. Emerge is probably about as efficient as this kind of stuff gets.
+
+Why not SeamlessImmutable?
+
+(SI is a popular library for merging and patching dicts and lists. Like Emerge, it sticks to plain JS data structures, and provides a similar set of functions.)
+
+Emerge is WAY faster, more memory-efficient, and smaller than SI.
 
 ## Installation
 
@@ -414,13 +420,25 @@ Non-data references are considered outside the scope of Emerge, and treated
 atomically. Emerge includes and replaces them wholesale. This lets you use
 Emerge for trees of any kind, even non-data.
 
+Emerge doesn't use `Object.freeze`. If you're consciously treating your data as immutable, you don't need this straight jacket. `Object.freeze` requires the library to choose between inconvenience ("mutating" the incoming data by freezing it), an inconsistent API (sometimes returning the mutable input), or a **massive** performance penalty by always copying any mutable input. Emerge rejects the false trilemma. As a nice side effect, data structures produced by Emerge are 100% vanilla and can be passed to any 3d party API, even one that mutates its inputs.
+
 ## Compatibility
 
 Any ES5 environment (IE9+).
 
 ## Changelog
 
-### `0.2.0`
+### 0.3.0
+
+Lists now must be arrays. Other types of lists, such as `arguments` and DOM lists, don't count.
+
+  * `getIn`, `putIn`, and `putInBy` require the path to be an array
+  * `arguments` is considered a plain dict
+  * other non-array lists, such as DOM lists, are considered non-data
+
+This simplifies the code. Whether it simplifies the mental assumptions depends on how you think about `arguments`. I found that it's better to avoid mixing it with your data to prevent gotchas. This change should help catch the `arguments` gotchas early.
+
+### 0.2.0
 
 Performance improvements, simplified internals, and a breaking API cleanup that's been brewing for a long time. Through convergent evolution, the API is now closer than ever to the data functions in `clojure.core`.
 
@@ -436,7 +454,7 @@ Performance improvements, simplified internals, and a breaking API cleanup that'
 * `putInBy` is now limited to 10 additional arguments for the operator
 * `putBy` now accepts up to 10 additional arguments for the operator, like `putInBy`
 
-#### Migration guide for `0.1.2` → `0.2.0`
+#### Migration guide for 0.1.2 → 0.2.0
 
 * replace `patchDicts` → `patch`
 * replace `mergeDicts` → `merge`
