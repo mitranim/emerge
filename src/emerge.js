@@ -33,7 +33,8 @@
 // slower due to redundant equality checks on every level. Instead, we put
 // and check once, then assoc faster.
 //
-// Overhead of rest/spread in V8 at the time of writing (measured on empty function):
+// Overhead of rest/spread in V8 at the time of writing
+// (measured on an empty function):
 //
 //   1) no rest/spread: 1x
 //   2) native: ≈8x
@@ -45,8 +46,8 @@
 // Currently using (1). Will probably switch to (3) after anyone runs into the
 // argument limit and complains.
 //
-// In `patch` and `merge`, argument allocation and slow `Array.prototype.reduce`
-// should be negligible compared to the actual patching.
+// In `patch` and `merge`, argument allocation and the relative slowness of
+// `Array.prototype.reduce` should be negligible compared to the actual patching.
 //
 //
 // # TODO
