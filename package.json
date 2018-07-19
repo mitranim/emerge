@@ -15,14 +15,11 @@
     "plain",
     "data"
   ],
-  "authors": [
-    "Mitranim <me@mitranim.com>"
-  ],
-  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/Mitranim/emerge.git"
   },
+  "license": "WTFPL",
   "devDependencies": {
     "babel-core": "6.26.0",
     "babel-eslint": "7.2.3",
