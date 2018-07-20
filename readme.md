@@ -15,7 +15,7 @@ JS dicts and lists are almost usable as generic data structures, barring a few f
 Emerge addresses (1) and (2). It provides functions to "update" dicts and lists by creating new versions that share as much structure as possible with old versions. This is known as _structural sharing_. It conserves memory and allows to use identity ([`is`](#isone-other)) on sibling values as a fast substitute for "proper" value equality ([`equal`](#equalone-other)), which Emerge also provides.
 
 FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own
-data. Extremely lightweight (≈ 3 KiB minified), dependency-free. Probably the fastest among the alternatives.
+data. Extremely lightweight (≈ 3.5 KiB minified), dependency-free. Faster than the alternatives.
 
 Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md) and the [`clojure.core`](https://clojuredocs.org/core-library) data utils.
 
@@ -56,7 +56,7 @@ Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob
   * Complete compatibility with JSON
 
 2. Size. At the time of writing, ImmutableJS is ≈ 57 KiB minified, unacceptable.
-   Emerge is just ≈ 3 KiB minified.
+   Emerge is just ≈ 3.5 KiB minified.
 
 3. Performance. Emerge is probably about as efficient as this kind of stuff gets.
 
@@ -64,7 +64,7 @@ Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob
 
 SI is a popular library for merging and patching dicts and lists. Like Emerge, it sticks to plain JS data structures, and provides similar functions to Emerge.
 
-Emerge is just WAY faster, more memory-efficient, and smaller than SI.
+However, Emerge is WAY faster, more memory-efficient, and smaller than SI.
 
 ## Installation
 
@@ -224,7 +224,7 @@ putInBy({one: {two: {three: 3}}}, ['one', 'two'], patch, {four: 4})
 
 ### `patch(...dicts)`
 
-Takes any number of arguments and combines their properties. Ignores non-dicts, always produces a dict.
+Takes any number of dicts and combines their properties. Ignores `null` and `undefined` inputs. Always produces a dict.
 
 Uses the same rules as [`put`](#putprev-key-value) and other derivatives:
 
@@ -242,7 +242,7 @@ patch({one: 1}, {two: 2}, {three: 3})
 patch({one: 1, two: 2}, {two: null})
 // {one: 1}
 
-// Ignores non-dicts
+// Ignores null and undefined
 patch({one: 1}, undefined)
 // {one: 1}
 
@@ -402,6 +402,7 @@ When creating new structures, Emerge follows a few special rules:
 
 * In dicts, `null` and `undefined` properties are considered non-existent.
   Setting a property to `null` or `undefined` is the same as deleting it.
+* Patching and merging into `null` and `undefined` treats them as `{}`.
 * Non-value references are treated atomically: included or replaced wholesale.
 
 Emerge differentiates between _values_ (data) and _references_ (non-data). The
@@ -420,13 +421,45 @@ Non-data references are considered outside the scope of Emerge, and treated
 atomically. Emerge includes and replaces them wholesale. This lets you use
 Emerge for trees of any kind, even non-data.
 
-Emerge doesn't use `Object.freeze`. If you're consciously treating your data as immutable, you don't need this straight jacket. `Object.freeze` requires the library to choose between inconvenience ("mutating" the incoming data by freezing it), an inconsistent API (sometimes returning the mutable input), or a **massive** performance penalty by always copying any mutable input. Emerge rejects the false trilemma. As a nice side effect, data structures produced by Emerge are 100% vanilla and can be passed to any 3d party API, even one that mutates its inputs.
+Emerge doesn't use `Object.freeze`. If you're consciously treating your data as immutable, you don't need this straight jacket. `Object.freeze` requires the library to choose between inconvenience ("mutating" the incoming data by freezing it), an inconsistent API (sometimes returning the mutable input), or a **massive** performance penalty by always copying any mutable input. Emerge rejects the false trilemma, choosing simplicity, performance, and freedom. As a nice side effect, data structures produced by Emerge are 100% vanilla and can be passed to any 3d party API, even one that mutates its inputs.
 
 ## Compatibility
 
 Any ES5 environment (IE9+).
 
 ## Changelog
+
+### 0.4.0
+
+Breaking change: stricter input validation.
+
+* `patch` and `merge` now accept only `null`,  `undefined`, and dicts.
+
+* In other update functions, the first argument must be `null`, `undefined`, a list, or a dict.
+
+* Other inputs are rejected with an exception.
+
+In earlier versions, the following code "worked":
+
+```js
+e.patch('not dict', {key: 'value'})
+// {key: 'value'}
+
+e.patch(['not dict'], {key: 'value'})
+// {key: 'value'}
+```
+
+Starting with 0.4.0, it fails loudly rather than silently:
+
+```js
+e.patch('not dict', {key: 'value'})
+// Error: Expected "not dict" to satisfy test isDict
+
+e.patch(['not dict'], {key: 'value'})
+// Error: Expected ["not dict"] to satisfy test isDict
+```
+
+This should help catch silly errors, and should not affect well-written code.
 
 ### 0.3.0
 

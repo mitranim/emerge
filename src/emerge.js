@@ -1,59 +1,53 @@
-// # Glossary
-//
-// put               = replace property by key or index, attempting to preserve old references
-// patch             = combines dicts, preserving old references where possible
-// merge             = deep patch that combines dicts at all levels
-// nil               = null | undefined
-// value             = primitive | list | plain dict
-//
-//
-// # Internal glossary
-//
-// assoc = insert value at key or path without attempting to preserve references
-//         (weaker than put or patch)
-//
-//
-// # Rules
-//
-// When making new values, omit nil properties.
-//
-// Treat non-value objects atomically: include and replace them entirely,
-// without cloning or attempting to reuse their properties.
-//
-//
-// # Performance notes
-//
-// Emerge seeks a balance of performance and simplicity.
-//
-// `put`, `patch` and derivatives tend to speculatively create a copy before
-// testing for equality and possibly throwing it away. Should revisit the code
-// and avoid this if possible.
-//
-// `putIn` could be defined as recursive `put`, but would be significantly
-// slower due to redundant equality checks on every level. Instead, we put
-// and check once, then assoc faster.
-//
-// Overhead of rest/spread in V8 at the time of writing
-// (measured on an empty function):
-//
-//   1) no rest/spread: 1x
-//   2) native: ≈8x
-//   3) partial arg copying and apply: ≈28x
-//   4) arg slicing and apply: ≈56x
-//   5) partial arg copying and concat-apply (Babel output): ≈100x
-//   6) arg slicing and concat-apply: ≈130x
-//
-// Currently using (1). Will probably switch to (3) after anyone runs into the
-// argument limit and complains.
-//
-// In `patch` and `merge`, argument allocation and the relative slowness of
-// `Array.prototype.reduce` should be negligible compared to the actual patching.
-//
-//
-// # TODO
-//
-// Add benchmarks with large real-world data.
+/*
 
+# Glossary
+
+put               = replace property by key or index, attempting to preserve old references
+patch             = combines dicts, preserving old references where possible
+merge             = deep patch that combines dicts at all levels
+nil               = null | undefined
+value             = primitive | list | plain dict
+
+
+# Internal glossary
+
+assoc = insert value at key or path without attempting to preserve references
+        (weaker than put or patch)
+
+
+# Rules
+
+When making new values, omit nil properties.
+
+Treat non-value objects atomically: include and replace them entirely,
+without cloning.
+
+
+# Performance notes
+
+Emerge seeks a balance of performance and simplicity.
+
+`put`, `patch` and other functions tend to speculatively create a new data
+structure before testing it for equality, possibly throwing it away. Should
+revisit the code and avoid this, where possible.
+
+`putIn` could be defined as recursive `put`, but would be significantly
+slower due to redundant equality checks on every level. Instead, we put
+and check once, then assoc faster.
+
+`putBy` and `putInBy` use a fixed number of extra arguments to avoid the
+rest/spread overhead, which for small inputs is comparable to the actual work
+done by these functions. Native rest/spread would have acceptable performance,
+but we're targeting ES5.
+
+
+# TODO
+
+Add benchmarks with large real-world data.
+
+*/
+
+// Minifiable aliases
 const Object_ = Object
 const getKeys = Object_.keys
 const NOP     = Object.prototype
@@ -128,15 +122,17 @@ export function putInBy(prev, path, fun, a, b, c, d, e, f, g, h, i, j) {
 }
 
 export function patch(prev, next) {
-  return arguments.length > 2 ? NAP.reduce.call(arguments, patchTwo) : patchTwo(prev, next)
+  if (arguments.length > 2) return NAP.reduce.call(arguments, patchTwoDicts)
+  return patchTwoDicts(prev, next)
 }
 
 export function merge(prev, next) {
-  return arguments.length > 2 ? NAP.reduce.call(arguments, mergeTwo) : mergeTwo(prev, next)
+  if (arguments.length > 2) return NAP.reduce.call(arguments, mergeTwoDicts)
+  return mergeTwoDicts(prev, next)
 }
 
 export function insertAtIndex(list, index, value) {
-  list = toArray(list)
+  list = alwaysArray(list)
   validateBounds(list, index)
   list = NAP.slice.call(list)
   list.splice(index, 0, value)
@@ -145,7 +141,7 @@ export function insertAtIndex(list, index, value) {
 
 export function removeAtIndex(list, index) {
   validate(index, isInteger)
-  list = toArray(list)
+  list = alwaysArray(list)
   if (isNatural(index) && index < list.length) {
     list = NAP.slice.call(list)
     list.splice(index, 1)
@@ -169,26 +165,29 @@ function putAny(prev, next) {
   )
 }
 
-function patchTwo(prev, next) {
-  return is(prev, next)
-    ? toDict(prev)
-    : patchDictBy(toDict(prev), toDict(next), putAny)
+function patchTwoDicts(prev, next) {
+  prev = alwaysDict(prev)
+  next = alwaysDict(next)
+  if (is(prev, next)) return prev
+  return patchDictBy(prev, next, putAny)
+}
+
+function mergeTwoDicts(prev, next) {
+  return mergeTwo(alwaysDict(prev), alwaysDict(next))
 }
 
 function mergeTwo(prev, next) {
-  return is(prev, next)
-    ? toDict(prev)
-    : patchDictBy(toDict(prev), toDict(next), mergeDictsOrPutAny)
+  if (is(prev, next)) return prev
+  return patchDictBy(toDict(prev), toDict(next), mergeOrPut)
 }
 
-function mergeDictsOrPutAny(prev, next) {
-  return isDict(prev) || isDict(next) ? mergeTwo(prev, next) : putAny(prev, next)
+function mergeOrPut(prev, next) {
+  return isDict(next) ? mergeTwo(prev, next) : putAny(prev, next)
 }
 
 function assoc(prev, key, next) {
-  return isArray(prev)
-    ? assocAtIndex(prev, key, next)
-    : assocAtKey(toDict(prev), key, next)
+  if (isArray(prev)) return assocAtIndex(prev, key, next)
+  return assocAtKey(alwaysDict(prev), key, next)
 }
 
 function assocIn(prev, path, next) {
@@ -299,6 +298,10 @@ function isNatural(value) {
   return isInteger(value) && value >= 0
 }
 
+function isString(value) {
+  return typeof value === 'string'
+}
+
 function isPath(value) {
   return isArray(value) && everyBy(value, isPrimitive)
 }
@@ -337,12 +340,20 @@ function everyBy(list, fun, a, b, c) {
   return true
 }
 
-function toArray(value) {
-  return isArray(value) ? value : []
+function alwaysArray(value) {
+  if (value == null) return []
+  validate(value, isArray)
+  return value
 }
 
 function toDict(value) {
   return isDict(value) ? value : {}
+}
+
+function alwaysDict(value) {
+  if (value == null) return {}
+  validate(value, isDict)
+  return value
 }
 
 function toKey(value) {
@@ -365,5 +376,7 @@ function show(value) {
     ? (value.name || value.toString())
     : isArray(value) || isDict(value)
     ? JSON.stringify(value)
+    : isString(value)
+    ? `"${value}"`
     : String(value)
 }
