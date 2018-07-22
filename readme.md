@@ -107,7 +107,7 @@ next.one === prev.one  // true
 
 Similar to [`clojure.core/assoc`](https://clojuredocs.org/clojure.core/assoc).
 
-Returns a data structure with `value` set at the given `key`. Works on dicts and lists. Safe to call on `undefined`, `null` or another invalid target; it's silently replaced with a dict.
+Returns a data structure with `value` set at the given `key`. Works on dicts and lists. Also accepts `null` and `undefined`, treating them as `{}`. Rejects other operands.
 
 Uses structural sharing, attempting to preserve as many old references as possible, even returning the original if the result is equal.
 
@@ -152,13 +152,14 @@ Similar to [`clojure.core/assoc-in`](https://clojuredocs.org/clojure.core/assoc-
 
 Like [`put`](#putprev-key-value), but updates at a nested `path` rather than one key.
 
-Only major difference from `put`: can be called with an empty path `[]`, in which case it returns `next` even if it's a primitive, without coercing to a dict. However, it will still perform a `put`-style deduplication, preserving as many references from `prev` as possible.
+Only major difference from `put`: can be called with an empty path `[]`, in which case it returns `next` even if it's a primitive, without coercing to a dict. However, when called with a dict or list and `[]`, it will still perform a `put`-style deduplication, preserving as many references from `prev` as possible.
 
 Otherwise, this uses exactly the same rules as `put`:
 
   * works for nested dicts and lists
   * creates nested dicts as needed
-  * safe to call on an invalid target; it's silently replaced with a dict if the path is non-empty
+  * accepts `null` and `undefined`, treating them as `{}`
+  * when called with a non-empty path, rejects inputs other than `null`, `undefined`, a list, or a dict
   * uses structural sharing, attempts to reuse as many old references as possible when the result would be equal
   * setting a property to nil deletes it
 
@@ -224,11 +225,10 @@ putInBy({one: {two: {three: 3}}}, ['one', 'two'], patch, {four: 4})
 
 ### `patch(...dicts)`
 
-Takes any number of dicts and combines their properties. Ignores `null` and `undefined` inputs. Always produces a dict.
+Takes any number of dicts and combines their properties. Ignores `null` and `undefined` inputs. Always produces a dict. Rejects other non-dict inputs.
 
 Uses the same rules as [`put`](#putprev-key-value) and other derivatives:
 
-  * safe to call on invalid targets; replaces them with dicts
   * uses structural sharing, attempts to reuse as many old references as possible when the result would be equal
   * setting a property to nil deletes it
 
@@ -276,7 +276,7 @@ Creates a version of `list` with `value` inserted at the given `index`. Index mu
 
 Note that this _always_ adds a new element. To update an existing element, use [`put`](#putprev-key-value).
 
-Accepts a non-list target, silently replacing it with a list.
+Accepts `null` and `undefined`, treating them as `[]`. Rejects other operands.
 
 ```js
 insertAtIndex(undefined, 0, 'one')
@@ -294,7 +294,9 @@ insertAtIndex(['one', 'two'], 0, 'three')
 
 ### `removeAtIndex(list, index)`
 
-Creates a version of `list` with the element at `index` removed. More permissive than `insertAtIndex`: index must be an integer, but non-natural numbers such as `-1` are ok and are simply ignored without removing an element. A non-list target is silently replaced with a list.
+Creates a version of `list` with the element at `index` removed. More permissive than `insertAtIndex`: index must be an integer, but non-natural numbers such as `-1` are ok and are simply ignored without removing an element.
+
+Accepts `null` and `undefined`, treating them as `[]`. Rejects other operands.
 
 ```js
 removeAtIndex(undefined, 0)
