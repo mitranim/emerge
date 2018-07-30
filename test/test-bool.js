@@ -9,6 +9,7 @@ is(e.is(), true)
 is(e.is(null, undefined), false)
 is(e.is(1, 1), true)
 is(e.is(NaN, NaN), true)
+is(e.is(-0, +0), true)
 is(e.is('1', 1), false)
 is(e.is({}, {}), false)
 

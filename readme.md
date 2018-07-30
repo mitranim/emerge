@@ -69,9 +69,9 @@ However, Emerge is WAY faster, more memory-efficient, and smaller than SI.
 ## Installation
 
 ```sh
-npm install --save-exact emerge
-# or
 npm i -E emerge
+# or
+yarn add -E emerge
 ```
 
 Example usage:
@@ -103,6 +103,14 @@ next.one === prev.one  // true
 
 ## API
 
+All examples on this page imply an import:
+
+```js
+import * as e from 'emerge'
+// or
+const e = require('emerge')
+```
+
 ### `put(prev, key, value)`
 
 Similar to [`clojure.core/assoc`](https://clojuredocs.org/clojure.core/assoc).
@@ -116,32 +124,32 @@ Setting a property to nil (`undefined` or `null`) causes it to be removed from t
 ```js
 // Dict
 
-put({}, 'one', 1)
+e.put({}, 'one', 1)
 // {one: 1}
 
-put({one: 1}, 'two', 2)
+e.put({one: 1}, 'two', 2)
 // {one: 1, two: 2}
 
 // List
 
-put([], 0, 'one')
+e.put([], 0, 'one')
 // ['one']
 
-put(['one'], 1, 'two')
+e.put(['one'], 1, 'two')
 // ['one', 'two']
 
 // Delete by passing nil
 
-put({one: 1, two: 2}, 'two', null)
-put({one: 1, two: 2}, 'two', undefined)
+e.put({one: 1, two: 2}, 'two', null)
+e.put({one: 1, two: 2}, 'two', undefined)
 // {one: 1}
 
 // Structural sharing
 
 const prev = {one: [1], two: [2]}
 
-put(prev, 'two', [2]) === prev
-put(prev, 'two', 2).one === prev.one
+e.put(prev, 'two', [2]) === prev
+e.put(prev, 'two', 2).one === prev.one
 ```
 
 When putting into a list, the key must be an integer index within bounds, otherwise this produces an exception.
@@ -166,35 +174,35 @@ Otherwise, this uses exactly the same rules as `put`:
 ```js
 // Dict
 
-putIn({}, ['one'], 1)
+e.putIn({}, ['one'], 1)
 // {one: 1}
 
-putIn({one: 1}, ['one', 'two'], 2)
+e.putIn({one: 1}, ['one', 'two'], 2)
 // {one: {two: 2}}
 
-putIn(undefined, ['one'], 1)
+e.putIn(undefined, ['one'], 1)
 // {one: 1}
 
 // List
 
-putIn([], [0], 'one')
+e.putIn([], [0], 'one')
 // ['one']
 
-putIn(['one', 'two'], [1], 'three')
+e.putIn(['one', 'two'], [1], 'three')
 // ['one', 'three']
 
 // Mixed
 
-putIn({one: [{two: 2}]}, ['one', 0, 'three'], 3)
+e.putIn({one: [{two: 2}]}, ['one', 0, 'three'], 3)
 // {one: [{two: 2, three: 3}]}
 
 // Structural sharing
 
 const prev = {one: [1], two: [2]}
 
-putIn(prev, [], {one: [1], two: [2]}) === prev
-putIn(prev, ['one'], [1]) === prev
-putIn(prev, ['two'], 20).one === prev.one
+e.putIn(prev, [], {one: [1], two: [2]}) === prev
+e.putIn(prev, ['one'], [1]) === prev
+e.putIn(prev, ['two'], 20).one === prev.one
 ```
 
 ### `putBy(prev, key, fun, ...args)`
@@ -206,7 +214,7 @@ Similar to [`put`](#putprev-key-value), but takes a function and calls it with t
 Additional arguments are currently limited to 10 to avoid rest/spread overhead.
 
 ```js
-putBy({one: {two: 2}}, 'one', patch, {three: 3})
+e.putBy({one: {two: 2}}, 'one', e.patch, {three: 3})
 // {one: {two: 2, three: 3}}
 ```
 
@@ -219,7 +227,7 @@ Similar to [`putIn`](#putinprev-path-value) and [`putBy`](#putbyprev-key-fun-arg
 Additional arguments are currently limited to 10 to avoid rest/spread overhead.
 
 ```js
-putInBy({one: {two: {three: 3}}}, ['one', 'two'], patch, {four: 4})
+e.putInBy({one: {two: {three: 3}}}, ['one', 'two'], e.patch, {four: 4})
 // {one: {two: {three: 3, four: 4}}}
 ```
 
@@ -233,32 +241,32 @@ Uses the same rules as [`put`](#putprev-key-value) and other derivatives:
   * setting a property to nil deletes it
 
 ```js
-patch()
+e.patch()
 // {}
 
-patch({one: 1}, {two: 2}, {three: 3})
+e.patch({one: 1}, {two: 2}, {three: 3})
 // {one: 1, two: 2, three: 3}
 
-patch({one: 1, two: 2}, {two: null})
+e.patch({one: 1, two: 2}, {two: null})
 // {one: 1}
 
 // Ignores null and undefined
-patch({one: 1}, undefined)
+e.patch({one: 1}, undefined)
 // {one: 1}
 
 // Combines only at the top level
-patch({one: {two: 2}}, {one: {three: 3}})
+e.patch({one: {two: 2}}, {one: {three: 3}})
 // {one: {three: 3}}
 
 // Structural sharing
 
 const prev = {one: [1], two: [2]}
 
-patch(prev) === prev
-patch(prev, {}) === prev
-patch(prev, {one: [1]}) === prev
-patch(prev, {one: [1], two: [2]}) === prev
-patch(prev, {two: 20}).one === prev.one
+e.patch(prev) === prev
+e.patch(prev, {}) === prev
+e.patch(prev, {one: [1]}) === prev
+e.patch(prev, {one: [1], two: [2]}) === prev
+e.patch(prev, {two: 20}).one === prev.one
 ```
 
 ### `merge(...dicts)`
@@ -266,7 +274,7 @@ patch(prev, {two: 20}).one === prev.one
 Same as [`patch`](#patchdicts), but combines dicts at any depth:
 
 ```js
-merge({one: {two: 2}}, {one: {three: 3}})
+e.merge({one: {two: 2}}, {one: {three: 3}})
 // {one: {two: 2, three: 3}}
 ```
 
@@ -279,16 +287,16 @@ Note that this _always_ adds a new element. To update an existing element, use [
 Accepts `null` and `undefined`, treating them as `[]`. Rejects other operands.
 
 ```js
-insertAtIndex(undefined, 0, 'one')
+e.insertAtIndex(undefined, 0, 'one')
 // ['one']
 
-insertAtIndex([], 0, 'one')
+e.insertAtIndex([], 0, 'one')
 // ['one']
 
-insertAtIndex(['one'], 1, 'two')
+e.insertAtIndex(['one'], 1, 'two')
 // ['one', 'two']
 
-insertAtIndex(['one', 'two'], 0, 'three')
+e.insertAtIndex(['one', 'two'], 0, 'three')
 // ['three', 'one', 'two']
 ```
 
@@ -299,23 +307,32 @@ Creates a version of `list` with the element at `index` removed. More permissive
 Accepts `null` and `undefined`, treating them as `[]`. Rejects other operands.
 
 ```js
-removeAtIndex(undefined, 0)
+e.removeAtIndex(undefined, 0)
 // []
 
-removeAtIndex(['one'], 0)
+e.removeAtIndex(['one'], 0)
 // []
 
-removeAtIndex(['one', 'two'], 1)
+e.removeAtIndex(['one', 'two'], 1)
 // ['one']
 
-removeAtIndex(['one', 'two'], -1)
+e.removeAtIndex(['one', 'two'], -1)
 // ['one', 'two']
 ```
 
 ### `is(one, other)`
 
-Same as ES2015 `Object.is`. Equivalent to `===` but also considers `NaN` equal
-to itself. Used internally for all identity checks.
+[_SameValueZero_](https://www.ecma-international.org/ecma-262/6.0/#sec-samevaluezero) as defined by the language spec. Same as `===`, but considers `NaN` equal to `NaN`.
+
+Note that [`Object.is`](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Object/is) implements [_SameValue_](https://www.ecma-international.org/ecma-262/6.0/#sec-samevalue), which treats `-0` and `+0` as _distinct values_. This is typically undesirable.
+
+`is` should be preferred over `===` or `Object.is`. Used internally in Emerge for all identity tests.
+
+```js
+e.is(NaN, NaN)  // true
+e.is(10,  10)   // true
+e.is(10,  '10') // false
+```
 
 ### `equal(one, other)`
 
@@ -323,12 +340,10 @@ True if the inputs are equal by _value_ rather than by identity. Ignores
 prototypes and non-enumerable properties.
 
 ```js
-const {equal} = require('emerge')
-
 const prev = {one: NaN, two: [2]}
 const next = {one: NaN, two: [2]}
 
-equal(prev, next)  // true
+e.equal(prev, next)  // true
 ```
 
 ### `equalBy(one, other, fun)`
@@ -341,29 +356,23 @@ Customisable equality. Uses `fun` to compare properties of lists and dicts, and
 
 ```js
 // Shallow equality
-equalBy({one: 1}, {one: 1}, is)
-// true
-equalBy({list: []}, {list: []}, is)
-// false
+e.equalBy({one: 1},   {one: 1},   e.is) // true
+e.equalBy({list: []}, {list: []}, e.is) // false
 
-// Deep equality: `equal` is just a special case of `equalBy`
+// Deep equality: `e.equal` is just a recursive `e.equalBy`
 function equal(one, other) {
-  return equalBy(one, other, equal)
+  return e.equalBy(one, other, e.equal)
 }
 
 // Add support for arbitrary types
 function myEqual(one, other) {
   return isDate(one)
     ? isDate(other) && one.valueOf() === other.valueOf()
-    : equalBy(one, other, myEqual)
+    : e.equalBy(one, other, myEqual)
 }
 
 function isDate(value) {
-  return isObject(value) && value instanceof Date
-}
-
-function isObject(value) {
-  return value != null && typeof value === 'object'
+  return value instanceof Date
 }
 ```
 
@@ -373,10 +382,10 @@ Reads property `key` on `value`. Unlike dot or bracket notation, safe to use on
 `null` or `undefined` values.
 
 ```js
-get(null, 'one')
+e.get(null, 'one')
 // undefined
 
-get({one: 1}, 'one')
+e.get({one: 1}, 'one')
 // 1
 ```
 
@@ -385,7 +394,7 @@ get({one: 1}, 'one')
 Like `get`, but takes a list of keys and reads a nested property at that path. If unreachable, returns `undefined`.
 
 ```js
-getIn({one: {two: 2}}, ['one', 'two'])
+e.getIn({one: {two: 2}}, ['one', 'two'])
 // 2
 ```
 
@@ -394,7 +403,7 @@ getIn({one: {two: 2}}, ['one', 'two'])
 Like `getIn`, but the path is formed by multiple arguments after the first.
 
 ```js
-scan({one: {two: 2}}, 'one', 'two')
+e.scan({one: {two: 2}}, 'one', 'two')
 // 2
 ```
 
