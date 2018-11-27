@@ -3,7 +3,7 @@
 # Glossary
 
 put               = replace property by key or index, attempting to preserve old references
-patch             = combines dicts, preserving old references where possible
+patch             = combine dicts, preserving old references where possible
 merge             = deep patch that combines dicts at all levels
 nil               = null | undefined
 value             = primitive | list | plain dict
@@ -12,7 +12,7 @@ value             = primitive | list | plain dict
 # Internal glossary
 
 assoc = insert value at key or path without attempting to preserve references
-        (weaker than put or patch)
+        (weaker than `put` or `patch`)
 
 
 # Rules
@@ -29,16 +29,16 @@ Emerge seeks a balance of performance and simplicity.
 
 `put`, `patch` and other functions tend to speculatively create a new data
 structure before testing it for equality, possibly throwing it away. Should
-revisit the code and avoid this, where possible.
+revisit the code and avoid this where possible.
 
-`putIn` could be defined as recursive `put`, but would be significantly
-slower due to redundant equality checks on every level. Instead, we put
-and check once, then assoc faster.
+`putIn` could be defined as recursive `put`, but would be significantly slower
+due to redundant equality checks on every level. A single nested put, with a
+single equality check, followed by multiple assoc, is much faster.
 
 `putBy` and `putInBy` use a fixed number of extra arguments to avoid the
 rest/spread overhead, which for small inputs is comparable to the actual work
 done by these functions. Native rest/spread would have acceptable performance,
-but we're targeting ES5.
+but we're targeting ES5 where it's not available.
 
 
 # TODO
