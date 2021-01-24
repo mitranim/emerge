@@ -1,30 +1,25 @@
-'use strict'
+import {AssertionError} from 'assert'
+import {inspect} from 'util'
 
-const {AssertionError} = require('assert')
-const {inspect} = require('util')
+// This becomes meaningful only after passing the boolean tests. Therefore
+// boolean tests must run first, and must not use `equal` from this file.
+import * as e from '../emerge.mjs'
 
-// This becomes meaningful after passing the boolean tests.
-// Therefore boolean tests must run first, and must not use `eq`.
-const {equal} = require('../')
-
-exports.is = is
-function is(actual, expected, message) {
+export function is(actual, expected, message) {
   if (!Object.is(actual, expected)) {
     if (message) throw new AssertionError({message, stackStartFunction: is})
     throw new AssertionError({actual, expected, operator: `is`, stackStartFunction: is})
   }
 }
 
-exports.eq = eq
-function eq(actual, expected, message) {
-  if (!equal(actual, expected)) {
-    if (message) throw new AssertionError({message, stackStartFunction: eq})
-    throw new AssertionError({actual, expected, operator: `eq`, stackStartFunction: eq})
+export function equal(actual, expected, message) {
+  if (!e.equal(actual, expected)) {
+    if (message) throw new AssertionError({message, stackStartFunction: equal})
+    throw new AssertionError({actual, expected, operator: `equal`, stackStartFunction: equal})
   }
 }
 
-exports.throws = throws
-function throws(fun, messageOrClass) {
+export function throws(fun, messageOrClass) {
   if (!isFunction(fun)) {
     throw new AssertionError({message: `expected a function, got ${show(fun)}`})
   }

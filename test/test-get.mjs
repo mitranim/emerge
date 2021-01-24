@@ -1,7 +1,5 @@
-'use strict'
-
-const t = require('./utils')
-const e = require('../')
+import * as t from './utils.mjs'
+import * as e from '../emerge.mjs'
 
 const tree = {
   one: 'one',

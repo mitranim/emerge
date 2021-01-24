@@ -1,12 +1,9 @@
 {
-  "parser": "babel-eslint",
-  "parserOptions": {
-    "sourceType": "script"
-  },
+  "parserOptions": {"sourceType": "module"},
   "env": {
-    "browser": false,
-    "node": true,
-    "es6": true
+    "es2017": true,
+    "browser": true,
+    "node": true
   },
   "rules": {
     // Logic
@@ -157,9 +154,10 @@
     "object-curly-spacing": "error",
     "one-var": ["error", "never"],
     "operator-assignment": ["error", "always"],
-    "operator-linebreak": ["error", "after", {"overrides": {"?": "off", ":": "off"}}],
+    // "operator-linebreak": ["error", "after", {"overrides": {"?": "off", ":": "off"}}],
     "padded-blocks": ["error", "never"],
-    "quote-props": ["error", "as-needed"],
+    // "quote-props": ["error", "as-needed"],
+    "quote-props": "off",
     "quotes": ["error", "single", {"allowTemplateLiterals": true, "avoidEscape": true}],
     "semi": ["error", "never"],
     "space-before-blocks": ["error", "always"],

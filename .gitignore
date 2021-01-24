@@ -1,7 +1,8 @@
-*.log
-.DS_Store
-node_modules
-dist
-es
-/todo
-/perf.js
+/*
+!/test
+!/.eslintrc
+!/.npmignore
+!/package.json
+!/readme.md
+!/emerge.mjs
+!/tasks.mjs
