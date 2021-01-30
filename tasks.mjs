@@ -25,30 +25,30 @@ const LINT = pop(args, 'lint')
 const WATCH = pop(args, 'watch')
 if (args.size) throw Error(`unknown args: ${ut.inspect(args)}`)
 
-const tasks = [TEST && test, LINT && lint].filter(Boolean)
+const tasks = trim(TEST && test, LINT && lint)
 
 if (WATCH) {
-  for (const task of tasks) task().catch(console.error)
+  runTasksNonFatal(tasks)
   watch(tasks)
 }
 else {
-  for (const task of tasks) task().catch(fail)
+  runTasksFatal(tasks)
 }
 
 /* Commands */
 
 async function test() {
-  if (testProc) testProc.kill()
-  testProc = cp.fork(TEST_FILE, [], {shell: true, stdio: 'inherit'})
-  const code = await new Promise(res => testProc.on('exit', res))
+  testProc = rerunFork(testProc, TEST_FILE, [])
+  const exitCode = await waitForSubproc(testProc)
 
-  if (code) throw Error(`[test] exited with ${code}`)
+  if (exitCode == null) throw Error(`[test] failed to wait until completion`)
+  if (exitCode) throw Error(`[test] exited with ${exitCode}`)
   console.log(`[test] ok`)
 }
 
 async function lint() {
   const results = await linter.lintFiles(MAIN_FILE)
-  const failCount = results.reduce((acc, res) => (res.errorCount || 0) + (res.warningCount || 0), 0)
+  const failCount = eslintResultsFailCount(results)
 
   if (failCount) {
     const fmt = await linter.loadFormatter('stylish')
@@ -59,19 +59,19 @@ async function lint() {
   console.log('[lint] ok')
 }
 
-/* Utils */
-
 function watch(tasks) {
   tasks = tasks.filter(Boolean)
 
   function rerun() {
     console.log(TERM_CLEAR_HARD)
-    for (const task of tasks) task().catch(console.error)
+    runTasksNonFatal(tasks)
   }
 
   fs.watch(MAIN_FILE, {}, rerun)
   fs.watch(TEST_DIR, {recursive: true}, rerun)
 }
+
+/* Utils */
 
 function pop(set, val) {
   const had = set.has(val)
@@ -82,4 +82,33 @@ function pop(set, val) {
 function fail(err) {
   console.error(err)
   process.exit(1)
+}
+
+function eslintResultsFailCount(results) {
+  return results.reduce(addFailCount, 0)
+}
+
+function addFailCount(acc, res) {
+  return acc + (res.errorCount || 0) + (res.warningCount || 0)
+}
+
+function runTasksNonFatal() {
+  for (const task of tasks) task().catch(console.error)
+}
+
+function runTasksFatal() {
+  for (const task of tasks) task().catch(fail)
+}
+
+function rerunFork(proc, path, args) {
+  if (proc) proc.kill()
+  return cp.fork(path, args, {shell: true, stdio: 'inherit'})
+}
+
+function waitForSubproc(proc) {
+  return new Promise(res => proc.on('exit', res))
+}
+
+function trim(...args) {
+  return args.filter(Boolean)
 }

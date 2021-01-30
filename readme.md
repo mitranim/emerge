@@ -13,9 +13,9 @@ JS and JSON have half-decent generic data structures, barring a few flaws:
 
 Emerge addresses (1) and (2). It provides functions to "update" dicts and lists by creating new versions that share as much structure as possible with old versions. This is known as [#_structural sharing_](#structural-sharing). It conserves memory and allows to use identity ([#`is`](#isone-other)) on sibling values as a fast substitute for "proper" value equality ([#`equal`](#equalone-other)), which Emerge also provides.
 
-FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own data. Extremely lightweight (handful of KiB minified), dependency-free. Faster than all alternatives that I measured.
-
 Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md) and the [`clojure.core`](https://clojuredocs.org/core-library) data utils.
+
+FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own data. Faster than all alternatives that I measured. Extremely lightweight (handful of KiB minified), dependency-free. Written as one file with simple ES2015 exports. A good module bundler and minifier should drop out any functions you don't use.
 
 ## TOC
 
