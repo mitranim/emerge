@@ -15,7 +15,9 @@ Emerge addresses (1) and (2). It provides functions to "update" dicts and lists 
 
 Inspired by [Clojure's ideas](https://github.com/matthiasn/talk-transcripts/blob/master/Hickey_Rich/AreWeThereYet.md) and the [`clojure.core`](https://clojuredocs.org/core-library) data utils.
 
-FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own data. Faster than all alternatives that I measured. Extremely lightweight (handful of KiB minified), dependency-free. Written as one file with simple ES2015 exports. A good module bundler and minifier should drop out any functions you don't use.
+FP-friendly: only plain JS dicts and lists, no classes, no OO, bring your own data. Faster than all alternatives that I measured. Very lightweight (≈8 KiB _un_-minified), dependency-free. Written as one file with simple ES2015 exports. A good module bundler and minifier should drop out any functions you don't use.
+
+Compatible with native JS modules.
 
 ## TOC
 
@@ -69,6 +71,8 @@ At the time of writing, Emerge is _way_ faster, more memory-efficient, and small
 
 ## Installation
 
+### Node / Webpack
+
 ```sh
 npm i -E emerge
 ```
@@ -98,6 +102,20 @@ const next = e.patch(prev, {one: [10], two: 20})
 
 // Unchanged values retain their references
 next.one === prev.one  // true
+```
+
+### Native Browser Modules
+
+Emerge can be used as a native JS module in a browser:
+
+```js
+import * as e from './node_modules/emerge/emerge.mjs'
+```
+
+Can use a CDN:
+
+```js
+import * as e from 'https://unpkg.com/emerge@0.5.1/emerge.mjs'
 ```
 
 ## API
@@ -506,6 +524,12 @@ Because equality is used to determine whether to replace or keep old references,
 Versions `>= 0.5.0` **require ES2015+**. Versions `<= 0.5.0` work in **ES5** (IE9+).
 
 ## Changelog
+
+### 0.5.1
+
+Added missing `"type": "module"` to `package.json`.
+
+Reduced unminified size from ≈10.4 to ≈8.3 KiB (moved implementation notes to another file, shortened some function names).
 
 ### 0.5.0
 

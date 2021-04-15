@@ -1,6 +1,7 @@
 {
   "name": "emerge",
-  "version": "0.5.0",
+  "version": "0.5.1",
+  "type": "module",
   "main": "./emerge.mjs",
   "scripts": {
     "start": "node ./tasks.mjs test lint watch",
@@ -20,6 +21,6 @@
   },
   "license": "Unlicense",
   "devDependencies": {
-    "eslint": "7.18.0"
+    "eslint": "7.24.0"
   }
 }

@@ -1,53 +1,4 @@
-/*
-# Glossary
-
-put    = replace property by key / path / index, preserving as many references as possible.
-remove = remove property by key / path / index, preserving as many references as possible.
-patch  = combine dicts, preserving as many references as possible.
-merge  = deep patch that combines dicts at all levels.
-nil    = null | undefined.
-value  = primitive | list | plain dict.
-
-# Internal glossary
-
-These terms are used for some internal functions analogous to the external API
-but are more specialized, don't validate inputs as rigorously, etc.
-
-assoc = same as `put`, but checks equality only by reference; used internally
-        by `put` and `putIn`.
-
-# Special Rules
-
-Treat non-value objects atomically: include and replace them entirely, without
-cloning.
-
-# Performance notes
-
-Emerge seeks a balance of performance and simplicity.
-
-`put`, `patch` and other functions tend to speculatively create a new data
-structure before testing it for equality, possibly throwing it away. Should
-revisit the code and avoid this where possible.
-
-`putIn` could be defined as a recursive `put`, but would be significantly slower
-due to redundant equality checks on every level. A single nested `put`, with a
-single equality check, followed by multiple assoc, is much faster.
-
-In modern V8, our simple `fold` and `fold1` seem to perform as a well as an
-inline loop, and much better than `Array.prototype.reduce`.
-
-In modern V8, native rest and spread has almost no meaningful overhead compared
-to hardcoding a fixed set of additional parameters.
-
-# TODO
-
-Add benchmarks with large real-world data.
-*/
-
-// Minifiable aliases
-const Object_ = Object
-const Array_  = Array
-const NOP     = Object.prototype
+// See glossary and implementation notes in `impl.md`.
 
 /* Bool */
 
@@ -60,10 +11,10 @@ export function equal(one, other) {
 }
 
 export function equalBy(one, other, fun) {
-  validate(fun, isFunction)
+  valid(fun, isFun)
   return is(one, other) || (
-    isArray(one)
-    ? isArray(other) && everyListPairBy(one, other, fun)
+    isArr(one)
+    ? isArr(other) && everyListPairBy(one, other, fun)
     : isDict(one)
     ? isDict(other) && everyDictPairBy(one, other, fun)
     : false
@@ -72,13 +23,13 @@ export function equalBy(one, other, fun) {
 
 /* Get */
 
-export function get(value, key) {
-  return isNil(value) ? undefined : value[key]
+export function get(val, key) {
+  return isNil(val) ? undefined : val[key]
 }
 
-export function getIn(value, path) {
-  validate(path, isArray)
-  return fold(path, value, get)
+export function getIn(val, path) {
+  valid(path, isArr)
+  return fold(path, val, get)
 }
 
 export function scan() {
@@ -87,23 +38,23 @@ export function scan() {
 
 /* Update */
 
-export function put(prev, key, value) {
-  validateKey(key)
-  return assoc(prev, key, putAny(get(prev, key), value))
+export function put(prev, key, val) {
+  validKey(key)
+  return assoc(prev, key, putAny(get(prev, key), val))
 }
 
 export function putIn(prev, path, next) {
-  validatePath(path)
+  validPath(path)
   return assocIn(prev, path, putAny(getIn(prev, path), next))
 }
 
 export function putBy(prev, key, fun, ...rest) {
-  validate(fun, isFunction)
+  valid(fun, isFun)
   return put(prev, key, fun(get(prev, key), ...rest))
 }
 
 export function putInBy(prev, path, fun, ...rest) {
-  validate(fun, isFunction)
+  valid(fun, isFun)
   return putIn(prev, path, fun(getIn(prev, path), ...rest))
 }
 
@@ -117,33 +68,33 @@ export function merge(prev, next) {
   return mergeTwo(prev, next)
 }
 
-export function insert(list, index, value) {
+export function insert(list, index, val) {
   list = onlyArray(list)
-  validateBounds(list, index)
+  validBounds(list, index)
   list = list.slice()
-  list.splice(index, 0, value)
+  list.splice(index, 0, val)
   return list
 }
 
-export function remove(value, key) {
-  if (isArray(value)) {
-    validate(key, isInteger)
-    return listRemove(value, key)
+export function remove(val, key) {
+  if (isArr(val)) {
+    valid(key, isInt)
+    return listRemove(val, key)
   }
-  validateKey(key)
-  return dictRemove(onlyDict(value), key)
+  validKey(key)
+  return dictRemove(onlyDict(val), key)
 }
 
 // Too much logic, support code, and overhead. TODO simplify.
-export function removeIn(value, path) {
-  validatePath(path)
+export function removeIn(val, path) {
+  validPath(path)
   if (!path.length) return undefined
 
-  value = onlyData(value)
-  if (!hasIn(value, path)) return value
+  val = onlyData(val)
+  if (!hasIn(val, path)) return val
 
   const prefix = init(path)
-  return assocIn(value, prefix, remove(getIn(value, prefix), last(path)))
+  return assocIn(val, prefix, remove(getIn(val, prefix), last(path)))
 }
 
 /* Update (internal) */
@@ -152,8 +103,8 @@ function putAny(prev, next) {
   return (
     is(prev, next)
     ? prev
-    : isArray(prev)
-    ? (isArray(next) ? listReplaceBy(prev, next, putAny) : next)
+    : isArr(prev)
+    ? (isArr(next) ? listReplaceBy(prev, next, putAny) : next)
     : isDict(prev)
     ? (isDict(next) ? dictReplaceBy(prev, next, putAny) : next)
     : next
@@ -182,7 +133,7 @@ function mergeOrPut(prev, next) {
 }
 
 function assoc(prev, key, next) {
-  if (isArray(prev)) return listPut(prev, key, next)
+  if (isArr(prev)) return listPut(prev, key, next)
   return dictPut(onlyDict(prev), key, next)
 }
 
@@ -197,25 +148,25 @@ function assocInAt(prev, path, next, index) {
     : assoc(prev, key, next)
 }
 
-function listPut(list, index, value) {
-  validateBounds(list, index)
-  if (index < list.length && is(list[index], value)) return list
+function listPut(list, index, val) {
+  validBounds(list, index)
+  if (index < list.length && is(list[index], val)) return list
   const out = list.slice()
-  out[index] = value
+  out[index] = val
   return out
 }
 
-function dictPut(dict, key, value) {
+function dictPut(dict, key, val) {
   key = String(key)
-  if (has(dict, key) && is(dict[key], value)) return dict
+  if (has(dict, key) && is(dict[key], val)) return dict
   const out = {}
   assign(out, dict)
-  out[key] = value
+  out[key] = val
   return out
 }
 
 function listRemove(list, index) {
-  if (isNatural(index) && index < list.length) {
+  if (isNat(index) && index < list.length) {
     list = list.slice()
     list.splice(index, 1)
   }
@@ -234,7 +185,7 @@ function dictRemove(dict, key) {
 }
 
 function listReplaceBy(prev, next, fun) {
-  const out = Array_(next.length)
+  const out = Array(next.length)
   for (let i = 0; i < next.length; i += 1) out[i] = fun(prev[i], next[i])
   return equalBy(prev, out, is) ? prev : out
 }
@@ -254,70 +205,37 @@ function patchBy(prev, next, fun) {
 
 /* Utils */
 
-function validatePath(value) {
-  validate(value, isArray)
-  value.forEach(validateKey)
+function validPath(val) {
+  valid(val, isArr)
+  val.forEach(validKey)
 }
 
-function validateKey(value) {
+function validKey(val) {
   // The readme explains why we do this.
-  if (isSymbol(value)) throw Error(`unexpected symbol key ${show(value)}`)
-  validate(value, isViableAsKey)
+  if (isSym(val)) throw Error(`unexpected symbol key ${show(val)}`)
+  valid(val, isViableAsKey)
 }
 
 // Note that when accessing a dict property, a number is converted to a string.
-function isViableAsKey(value) {
-  return isString(value) || isFinite(value)
-}
+function isViableAsKey(val) {return isStr(val) || isFin(val)}
 
-function isNumber(value) {
-  return typeof value === 'number'
-}
+function isNil(val) {return val == null}
+function isNum(val) {return typeof val === 'number'}
+function isFin(val) {return isNum(val) && !isNaN(val) && !isInf(val)}
+function isNaN(val) {return val !== val} // eslint-disable-line no-self-compare
+function isInf(val) {return val === Infinity || val === -Infinity}
+function isObj(val) {return val !== null && typeof val === 'object'}
+function isArr(val) {return isObj(val) && val instanceof Array}
+function isFun(val) {return typeof val === 'function'}
+function isInt(val) {return typeof val === 'number' && (val % 1) === 0}
+function isNat(val) {return isInt(val) && val >= 0}
+function isStr(val) {return typeof val === 'string'}
+function isSym(val) {return typeof val === 'symbol'}
 
-function isFinite(value) {
-  return isNumber(value) && !isNaN(value) && !isInfinity(value)
-}
-
-function isNaN(value) {
-  return value !== value  // eslint-disable-line no-self-compare
-}
-
-function isInfinity(value) {
-  return value === Infinity || value === -Infinity
-}
-
-function isObject(value) {
-  return value !== null && typeof value === 'object'
-}
-
-function isDict(value) {
-  if (!isObject(value)) return false
-  const proto = Object_.getPrototypeOf(value)
-  return proto === null || proto === NOP
-}
-
-function isArray(value) {
-  return isObject(value) && value instanceof Array_
-}
-
-function isFunction(value) {
-  return typeof value === 'function'
-}
-
-function isInteger(value) {
-  return typeof value === 'number' && (value % 1) === 0
-}
-
-function isNatural(value) {
-  return isInteger(value) && value >= 0
-}
-
-function isString(value) {
-  return typeof value === 'string'
-}
-
-function isSymbol(value) {
-  return typeof value === 'symbol'
+function isDict(val) {
+  if (!isObj(val)) return false
+  const proto = Object.getPrototypeOf(val)
+  return proto === null || proto === Object.prototype
 }
 
 function everyListPairBy(one, other, fun) {
@@ -355,75 +273,63 @@ function fold1(list, fun, a, b, c, d, e) {
 
 // Requires extreme care: when calling this on a dict, a numeric key must be
 // converted to a string first.
-function has(value, key) {
-  return isObject(value) && NOP.hasOwnProperty.call(value, key)
+function has(val, key) {
+  return isObj(val) && Object.prototype.hasOwnProperty.call(val, key)
 }
 
 // Suspicious. Would prefer to get rid of this.
-function hasIn(value, path) {
-  return fold(path, value, getOrMissing) !== missing
+function hasIn(val, path) {
+  return fold(path, val, getOrMissing) !== missing
 }
 
 const missing = Symbol()
 
-function getOrMissing(value, key) {
+function getOrMissing(val, key) {
   key = String(key)
-  return has(value, key) ? value[key] : missing
+  return has(val, key) ? val[key] : missing
 }
 
 function assign(out, src) {
   for (const key in src) out[key] = src[key]
 }
 
-function onlyData(value) {
-  return isArray(value) ? value : onlyDict(value)
+function onlyData(val) {
+  return isArr(val) ? val : onlyDict(val)
 }
 
-function onlyArray(value) {
-  if (isNil(value)) return []
-  validate(value, isArray)
-  return value
+function onlyArray(val) {
+  if (isNil(val)) return []
+  valid(val, isArr)
+  return val
 }
 
-function onlyDict(value) {
-  if (isNil(value)) return {}
-  validate(value, isDict)
-  return value
+function onlyDict(val) {
+  if (isNil(val)) return {}
+  valid(val, isDict)
+  return val
 }
 
-function toDict(value) {
-  return isDict(value) ? value : {}
-}
+function toDict(val) {return isDict(val) ? val : {}}
+function init(list) {return list.slice(0, list.length - 1)}
+function last(list) {return list[list.length - 1]}
 
-function isNil(value) {
-  return value == null
-}
-
-function init(list) {
-  return list.slice(0, list.length - 1)
-}
-
-function last(list) {
-  return list[list.length - 1]
-}
-
-function validateBounds(list, index) {
-  validate(index, isNatural)
+function validBounds(list, index) {
+  valid(index, isNat)
   if (!(index <= list.length)) {
     throw Error(`index ${index} out of bounds for length ${list.length}`)
   }
 }
 
-function validate(value, test) {
-  if (!test(value)) throw Error(`expected ${show(value)} to satisfy test ${show(test)}`)
+function valid(val, test) {
+  if (!test(val)) throw Error(`expected ${show(val)} to satisfy test ${show(test)}`)
 }
 
-function show(value) {
-  return isFunction(value)
-    ? (value.name || value.toString())
-    : isArray(value) || isDict(value)
-    ? JSON.stringify(value)
-    : isString(value)
-    ? `"${value}"`
-    : String(value)
+function show(val) {
+  return isFun(val)
+    ? (val.name || val.toString())
+    : isArr(val) || isDict(val)
+    ? JSON.stringify(val)
+    : isStr(val)
+    ? `"${val}"`
+    : String(val)
 }

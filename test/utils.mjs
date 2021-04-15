@@ -42,8 +42,10 @@ export function throws(fun, messageOrClass) {
     }
     else if (!err || !(err instanceof Error) || !err.message.match(messageOrClass)) {
       throw new AssertionError({
-        message: `expected ${show(fun)} to throw an error with a message matching ` +
-                 `${show(messageOrClass)}, got ${show(err)}`,
+        message: (
+          `expected ${show(fun)} to throw an error with a message matching ` +
+          `${show(messageOrClass)}, got ${show(err)}`
+        ),
         stackStartFunction: throws,
       })
     }

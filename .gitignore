@@ -1,8 +1,7 @@
 /*
 !/test
-!/.eslintrc
-!/.npmignore
+!/.*rc
+!/.*ignore
+!/*.mjs
+!/*.md
 !/package.json
-!/readme.md
-!/emerge.mjs
-!/tasks.mjs
