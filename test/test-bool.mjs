@@ -13,7 +13,7 @@ t.is(e.equal([], []), true)
 t.is(e.equal({}, {}), true)
 t.is(e.equal({}, []), false)
 t.is(e.equal(Object.create(null), Object.create(null)), true)
-t.is(e.equal(Object.create({}), Object.create({})), false, `non-plain objects shouldn't compare equal`)
+t.is(e.equal(Object.create({}), Object.create({})), false)
 
 // Known problem: ignores symbol keys; artifact of `for .. in`. Would prefer to
 // not ignore them, but unsure if the expense is justified.

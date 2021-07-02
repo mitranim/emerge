@@ -4,8 +4,7 @@
   "type": "module",
   "main": "./emerge.mjs",
   "scripts": {
-    "start": "node ./tasks.mjs test lint watch",
-    "prepublishOnly": "node ./tasks.mjs test lint"
+    "prepublishOnly": "make prep"
   },
   "description": "Functions for operating on JS lists and dicts as immutable, persistent data structures, using structural sharing for efficiency. Heavily inspired by clojure.core",
   "keywords": [
@@ -19,8 +18,5 @@
     "type": "git",
     "url": "https://github.com/mitranim/emerge.git"
   },
-  "license": "Unlicense",
-  "devDependencies": {
-    "eslint": "7.24.0"
-  }
+  "license": "Unlicense"
 }

@@ -115,7 +115,7 @@ import * as e from './node_modules/emerge/emerge.mjs'
 Can use a CDN:
 
 ```js
-import * as e from 'https://unpkg.com/emerge@0.5.1/emerge.mjs'
+import * as e from 'https://cdn.jsdelivr.net/npm/emerge@0.5.1/emerge.mjs'
 ```
 
 ## API

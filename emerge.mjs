@@ -12,13 +12,10 @@ export function equal(one, other) {
 
 export function equalBy(one, other, fun) {
   valid(fun, isFun)
-  return is(one, other) || (
-    isArr(one)
-    ? isArr(other) && everyListPairBy(one, other, fun)
-    : isDict(one)
-    ? isDict(other) && everyDictPairBy(one, other, fun)
-    : false
-  )
+  if (is(one, other)) return true
+  if (isArr(one)) return isArr(other) && everyListPairBy(one, other, fun)
+  if (isDict(one)) return isDict(other) && everyDictPairBy(one, other, fun)
+  return false
 }
 
 /* Get */
@@ -222,7 +219,7 @@ function isViableAsKey(val) {return isStr(val) || isFin(val)}
 function isNil(val) {return val == null}
 function isNum(val) {return typeof val === 'number'}
 function isFin(val) {return isNum(val) && !isNaN(val) && !isInf(val)}
-function isNaN(val) {return val !== val} // eslint-disable-line no-self-compare
+function isNaN(val) {return val !== val}
 function isInf(val) {return val === Infinity || val === -Infinity}
 function isObj(val) {return val !== null && typeof val === 'object'}
 function isArr(val) {return isObj(val) && val instanceof Array}
@@ -325,11 +322,10 @@ function valid(val, test) {
 }
 
 function show(val) {
-  return isFun(val)
-    ? (val.name || val.toString())
-    : isArr(val) || isDict(val)
-    ? JSON.stringify(val)
-    : isStr(val)
-    ? `"${val}"`
-    : String(val)
+  if (isFun(val) && val.name) return val.name
+  if (isStr(val) || isArr(val) || isDict(val)) {
+    try {return JSON.stringify(val)}
+    catch (_) {return String(val)}
+  }
+  return String(val)
 }
